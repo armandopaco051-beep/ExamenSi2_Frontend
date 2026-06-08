@@ -2,99 +2,124 @@
   display: flex;
   align-items: center;
   justify-content: space-between;
-  padding: 0 32px;
+  gap: 18px;
   min-height: 64px;
+  padding: 0 32px;
   background: var(--surface);
   border-bottom: 1px solid var(--border);
   position: sticky;
   top: 0;
   z-index: 100;
-  gap: 18px;
 }
 
 .navbar-brand {
-  display: flex;
+  display: inline-flex;
   align-items: center;
   gap: 10px;
-  font-size: 20px;
+  min-width: max-content;
+  color: var(--primary);
   text-decoration: none;
+}
 
-  .brand-text {
-    font-family: 'Space Mono', monospace;
-    font-weight: 700;
-    color: var(--primary);
-  }
+.brand-mark {
+  width: 32px;
+  height: 32px;
+  border-radius: 8px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  background: rgba(255, 107, 53, .14);
+  border: 1px solid rgba(255, 107, 53, .22);
+  color: var(--primary);
+  font-size: 12px;
+  font-weight: 900;
+  letter-spacing: 0;
+}
+
+.brand-text {
+  font-family: 'Space Mono', monospace;
+  font-size: 20px;
+  font-weight: 700;
+  color: var(--primary);
+  white-space: nowrap;
 }
 
 .navbar-panel {
+  flex: 1;
+  min-width: 0;
   display: flex;
   align-items: center;
   justify-content: space-between;
   gap: 18px;
-  flex: 1;
-  min-width: 0;
-}
-
-.menu-toggle {
-  display: none;
-  width: 42px;
-  height: 42px;
-  border: 1px solid var(--border);
-  border-radius: 10px;
-  background: rgba(255, 255, 255, .04);
-  color: var(--text);
-  cursor: pointer;
-  align-items: center;
-  justify-content: center;
-  gap: 4px;
-  transition: .2s ease;
-
-  span {
-    width: 5px;
-    height: 5px;
-    border-radius: 999px;
-    background: currentColor;
-    display: block;
-  }
-
-  &:hover,
-  &.active {
-    border-color: var(--primary);
-    color: var(--primary);
-    background: rgba(255, 107, 53, .10);
-  }
 }
 
 .navbar-links {
+  flex: 1;
+  min-width: 0;
   display: flex;
   align-items: center;
-  gap: 8px;
-  flex: 1;
   justify-content: center;
+  gap: 8px;
   flex-wrap: wrap;
 
   a {
     display: inline-flex;
     align-items: center;
     gap: 7px;
-    color: var(--text-muted);
-    text-decoration: none;
-    padding: 8px 16px;
+    min-height: 38px;
+    padding: 8px 14px;
     border-radius: 8px;
+    color: var(--text-muted);
     font-size: 14px;
-    font-weight: 500;
-    transition: all 0.2s;
+    font-weight: 600;
+    text-decoration: none;
+    transition: .2s ease;
 
     &:hover,
     &.active {
+      background: rgba(255, 255, 255, .08);
       color: var(--text);
-      background: rgba(255, 255, 255, 0.08);
     }
 
     &.active {
       color: var(--primary);
     }
   }
+}
+
+.menu-toggle {
+  display: none;
+  width: 42px;
+  height: 42px;
+  flex: 0 0 auto;
+  align-items: center;
+  justify-content: center;
+  gap: 4px;
+  border: 1px solid var(--border);
+  border-radius: 10px;
+  background: rgba(255, 255, 255, .04);
+  color: var(--text);
+  cursor: pointer;
+  transition: .2s ease;
+
+  span {
+    width: 5px;
+    height: 5px;
+    display: block;
+    border-radius: 999px;
+    background: currentColor;
+  }
+
+  &:hover,
+  &.active {
+    border-color: var(--primary);
+    background: rgba(255, 107, 53, .10);
+    color: var(--primary);
+  }
+}
+
+.menu-backdrop {
+  display: none;
 }
 
 .nav-chat-icon {
@@ -123,61 +148,74 @@
   display: flex;
   align-items: center;
   gap: 12px;
+  flex: 0 0 auto;
+}
 
-  .user-info {
-    display: flex;
-    align-items: center;
-    gap: 10px;
-    color: var(--text);
-    font-size: 14px;
-  }
+.user-info {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  min-width: 0;
+  color: var(--text);
+}
 
-  .avatar {
-    width: 36px;
-    height: 36px;
-    border-radius: 50%;
-    background: var(--primary);
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    font-weight: 700;
-    font-size: 15px;
-    color: #fff;
-  }
+.avatar {
+  width: 36px;
+  height: 36px;
+  border-radius: 50%;
+  flex: 0 0 auto;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: var(--primary);
+  color: #fff;
+  font-size: 15px;
+  font-weight: 800;
+}
 
-  .user-details {
-    display: flex;
-    flex-direction: column;
-    gap: 2px;
-  }
+.user-details {
+  min-width: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+}
 
-  .user-name {
-    font-size: 13px;
-    font-weight: 500;
-  }
+.user-name {
+  max-width: 130px;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  font-size: 13px;
+  font-weight: 600;
+}
 
-  .user-rol {
-    font-size: 10px;
-    padding: 2px 6px;
-    border-radius: 10px;
-    font-weight: 600;
-    width: fit-content;
-  }
+.user-rol {
+  width: fit-content;
+  max-width: 130px;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  padding: 2px 6px;
+  border-radius: 10px;
+  font-size: 10px;
+  font-weight: 700;
+}
 
-  .logout-btn {
-    background: transparent;
-    border: 1px solid var(--border);
-    color: var(--text-muted);
-    padding: 6px 14px;
-    border-radius: 6px;
-    font-size: 13px;
-    cursor: pointer;
-    transition: all 0.2s;
+.logout-btn {
+  flex: 0 0 auto;
+  border: 1px solid var(--border);
+  border-radius: 8px;
+  background: transparent;
+  color: var(--text-muted);
+  padding: 8px 13px;
+  font-size: 13px;
+  font-weight: 700;
+  cursor: pointer;
+  transition: .2s ease;
 
-    &:hover {
-      border-color: var(--error);
-      color: var(--error);
-    }
+  &:hover {
+    border-color: var(--error);
+    color: var(--error);
   }
 }
 
@@ -266,9 +304,9 @@
   overflow-y: auto;
   background: #0b1b2e;
   border: 1px solid rgba(255, 255, 255, .10);
-  border-radius: 14px;
+  border-radius: 8px;
   box-shadow: 0 22px 60px rgba(0, 0, 0, .35);
-  z-index: 150;
+  z-index: 160;
 }
 
 .notification-head {
@@ -388,17 +426,17 @@
 }
 
 .rol-1 {
-  background: rgba(255, 107, 53, 0.15);
+  background: rgba(255, 107, 53, .15);
   color: #ffab91;
 }
 
 .rol-2 {
-  background: rgba(33, 150, 243, 0.15);
+  background: rgba(33, 150, 243, .15);
   color: #90caf9;
 }
 
 .rol-3 {
-  background: rgba(76, 175, 80, 0.15);
+  background: rgba(76, 175, 80, .15);
   color: #a5d6a7;
 }
 
@@ -406,23 +444,24 @@
   .navbar {
     min-height: 64px;
     padding: 0 16px;
-    position: sticky;
     flex-wrap: nowrap;
     gap: 12px;
   }
 
-  .navbar-brand {
-    min-width: 0;
-
-    .brand-text {
-      font-size: 18px;
-      white-space: nowrap;
-    }
+  .brand-text {
+    font-size: 18px;
   }
 
   .menu-toggle {
     display: inline-flex;
-    flex: 0 0 auto;
+  }
+
+  .menu-backdrop {
+    display: block;
+    position: fixed;
+    inset: 64px 0 0;
+    background: rgba(2, 8, 23, .38);
+    z-index: 105;
   }
 
   .navbar-panel {
@@ -441,6 +480,7 @@
     border: 1px solid rgba(255, 255, 255, .10);
     border-radius: 8px;
     box-shadow: 0 24px 70px rgba(0, 0, 0, .42);
+    z-index: 120;
 
     &.open {
       display: flex;
@@ -452,6 +492,7 @@
     grid-template-columns: 1fr;
     gap: 6px;
     justify-content: stretch;
+    flex: initial;
 
     a {
       width: 100%;
@@ -467,27 +508,15 @@
     gap: 10px;
     padding-top: 10px;
     border-top: 1px solid rgba(255, 255, 255, .08);
+  }
 
-    .user-info {
-      min-width: 0;
-      flex: 1;
-    }
+  .user-info {
+    flex: 1;
+  }
 
-    .user-details {
-      min-width: 0;
-    }
-
-    .user-name,
-    .user-rol {
-      max-width: 130px;
-      overflow: hidden;
-      text-overflow: ellipsis;
-      white-space: nowrap;
-    }
-
-    .logout-btn {
-      flex: 0 0 auto;
-    }
+  .user-name,
+  .user-rol {
+    max-width: 130px;
   }
 
   .notification-panel {
@@ -497,7 +526,6 @@
     right: 12px;
     width: auto;
     max-height: calc(100vh - 96px);
-    border-radius: 8px;
   }
 }
 
@@ -506,7 +534,13 @@
     padding: 0 12px;
   }
 
-  .navbar-brand .brand-text {
+  .brand-mark {
+    width: 30px;
+    height: 30px;
+    font-size: 11px;
+  }
+
+  .brand-text {
     font-size: 16px;
   }
 
@@ -516,17 +550,13 @@
     width: auto;
   }
 
-  .navbar-user {
-    align-items: center;
+  .avatar {
+    width: 34px;
+    height: 34px;
+  }
 
-    .avatar {
-      width: 34px;
-      height: 34px;
-    }
-
-    .user-name,
-    .user-rol {
-      max-width: 96px;
-    }
+  .user-name,
+  .user-rol {
+    max-width: 96px;
   }
 }

@@ -1,9 +1,10 @@
-import { Component, HostListener, OnDestroy } from '@angular/core';
 import { CommonModule } from '@angular/common';
-import { RouterLink, RouterLinkActive, Router } from '@angular/router';
+import { Component, HostListener, OnDestroy } from '@angular/core';
+import { Router, RouterLink, RouterLinkActive } from '@angular/router';
+
 import { AuthService } from '../../core/services/auth.service';
-import { Usuario } from '../../models/usuario.model';
 import { Notificacion, NotificacionService } from '../../core/services/notificacion.service';
+import { Usuario } from '../../models/usuario.model';
 
 interface NavItem {
   label: string;
@@ -23,12 +24,13 @@ export class NavbarComponent implements OnDestroy {
   usuario: Usuario | null = null;
   menuItems: NavItem[] = [];
   idTallerNav = 0;
+  menuAbierto = false;
   notificacionesAbiertas = false;
   notificacionesLoading = false;
   notificacionesError = '';
   totalNoLeidas = 0;
   notificaciones: Notificacion[] = [];
-  menuAbierto = false;
+
   private notificacionesTimer: any = null;
 
   constructor(
@@ -42,6 +44,7 @@ export class NavbarComponent implements OnDestroy {
 
     this.auth.usuario$.subscribe(usuario => {
       this.usuario = usuario;
+      this.cerrarMenu();
       this.configurarMenu();
       this.configurarNotificaciones();
     });
@@ -54,7 +57,7 @@ export class NavbarComponent implements OnDestroy {
   @HostListener('window:resize')
   onResize(): void {
     if (window.innerWidth > 1280) {
-      this.menuAbierto = false;
+      this.cerrarMenu();
     }
   }
 
@@ -70,82 +73,9 @@ export class NavbarComponent implements OnDestroy {
   esAdminTaller(): boolean {
     return this.auth.esAdminTaller();
   }
-  esTecnico() :boolean {
-    return this.auth.esTecnico(); 
-  }
 
-  private configurarMenu(): void {
-    this.idTallerNav = Number(localStorage.getItem('id_taller') || 0);
-
-    if (this.esAdminPlataforma()) {
-      this.menuItems = [
-        { label: 'Dashboard', path: '/dashboard', exact: true },
-        { label: 'Usuarios', path: '/usuarios' },
-        { label: 'Roles', path: '/roles' },
-        { label: 'Suscripciones', path: '/suscripciones' },
-        { label: 'Talleres', path: '/talleres' },
-        { label: 'Técnicos', path: '/tecnicos' },
-        { label: 'Bitácora', path: '/bitacora' },
-        { label: 'Perfil', path: '/perfil' }
-      ];
-      return;
-    }
-
-    if (this.esAdminTaller()) {
-      if (!this.idTallerNav) {
-        this.menuItems = [];
-        return;
-      }
-
-      this.menuItems = [
-        { label: 'Dashboard', path: '/admin-taller/dashboard', exact: true },
-        { label: 'Técnicos', path: '/admin-taller/tecnicos' },
-        { label: 'Incidentes', path: '/incidentes-taller' },
-        { label: 'Cotizaciones', path: '/admin-taller/cotizaciones' },
-        { label: 'Mi plan', path: '/admin-taller/mi-plan' },
-        { label: 'Cobertura', path: '/admin-taller/cobertura' },
-        { label: 'Evaluaciones', path: '/admin-taller/evaluaciones' },
-        { label: 'Bitácora', path: '/bitacora' }, //arreglar esa bitacora 
-        { label: 'Perfil', path: '/perfil' }
-      ];
-      return;
-    }
-    if (this.esTecnico()) {
-    this.menuItems = [
-      { label: 'Dashboard', path: '/tecnico/dashboard', exact: true },
-      { label: 'Incidentes', path: '/tecnico/incidentes' },
-      { label: 'Chat', path: '/tecnico/chat', icon: 'chat' },
-      { label: 'Historial', path: '/tecnico/historial' },
-      { label: 'Evaluaciones', path: '/tecnico/evaluaciones' },
-      { label: 'Perfil', path: '/perfil' }
-    ];
-    return;
-  }
-
-    this.menuItems = [];
-  }
-
-  getBrandLink(): string {
-    if (this.esAdminTaller()) {
-      return this.idTallerNav ? '/admin-taller/dashboard' : '/login';
-    }
-
-    if (this.esAdminPlataforma()) {
-      return '/dashboard';
-    }
-    if (this.esTecnico()) {
-      return '/tecnico/dashboard';
-    }
-
-    return '/';
-  }
-
-  logout(): void {
-    this.cerrarMenu();
-    this.auth.logout();
-    localStorage.removeItem('id_taller');
-    this.detenerRefrescoNotificaciones();
-    this.router.navigate(['/login']);
+  esTecnico(): boolean {
+    return this.auth.esTecnico();
   }
 
   toggleMenu(): void {
@@ -161,6 +91,30 @@ export class NavbarComponent implements OnDestroy {
     this.notificacionesAbiertas = false;
   }
 
+  getBrandLink(): string {
+    if (this.esAdminTaller()) {
+      return this.idTallerNav ? '/admin-taller/dashboard' : '/login';
+    }
+
+    if (this.esAdminPlataforma()) {
+      return '/dashboard';
+    }
+
+    if (this.esTecnico()) {
+      return '/tecnico/dashboard';
+    }
+
+    return '/';
+  }
+
+  logout(): void {
+    this.cerrarMenu();
+    this.auth.logout();
+    localStorage.removeItem('id_taller');
+    this.detenerRefrescoNotificaciones();
+    this.router.navigate(['/login']);
+  }
+
   toggleNotificaciones(): void {
     this.notificacionesAbiertas = !this.notificacionesAbiertas;
 
@@ -174,10 +128,10 @@ export class NavbarComponent implements OnDestroy {
     if (!this.esAdminTaller()) return;
 
     this.notificacionService.obtenerContadorNoLeidas().subscribe({
-      next: (data) => {
+      next: data => {
         this.totalNoLeidas = Number(data?.total_no_leidas || 0);
       },
-      error: (err) => {
+      error: err => {
         console.error('ERROR CONTADOR NOTIFICACIONES:', err);
       }
     });
@@ -190,11 +144,11 @@ export class NavbarComponent implements OnDestroy {
     this.notificacionesError = '';
 
     this.notificacionService.listarMisNotificaciones(false, 20).subscribe({
-      next: (data) => {
+      next: data => {
         this.notificaciones = data || [];
         this.notificacionesLoading = false;
       },
-      error: (err) => {
+      error: err => {
         console.error('ERROR NOTIFICACIONES:', err);
         this.notificacionesError = err.error?.detail || 'No se pudieron cargar las notificaciones.';
         this.notificacionesLoading = false;
@@ -204,7 +158,7 @@ export class NavbarComponent implements OnDestroy {
 
   abrirNotificacion(notificacion: Notificacion): void {
     const navegar = () => {
-      this.notificacionesAbiertas = false;
+      this.cerrarMenu();
 
       if (notificacion.id_incidente) {
         this.router.navigate(['/incidentes-taller'], {
@@ -219,7 +173,7 @@ export class NavbarComponent implements OnDestroy {
     }
 
     this.notificacionService.marcarComoLeida(notificacion.codigo).subscribe({
-      next: (resp) => {
+      next: resp => {
         const actualizada = resp?.notificacion || { ...notificacion, leido: true };
         this.notificaciones = this.notificaciones.map(item =>
           item.codigo === notificacion.codigo ? actualizada : item
@@ -227,7 +181,7 @@ export class NavbarComponent implements OnDestroy {
         this.totalNoLeidas = Math.max(this.totalNoLeidas - 1, 0);
         navegar();
       },
-      error: (err) => {
+      error: err => {
         console.error('ERROR MARCAR NOTIFICACION:', err);
         navegar();
       }
@@ -242,11 +196,63 @@ export class NavbarComponent implements OnDestroy {
         this.notificaciones = this.notificaciones.map(item => ({ ...item, leido: true }));
         this.totalNoLeidas = 0;
       },
-      error: (err) => {
+      error: err => {
         console.error('ERROR MARCAR TODAS:', err);
         this.notificacionesError = err.error?.detail || 'No se pudieron marcar todas como leidas.';
       }
     });
+  }
+
+  private configurarMenu(): void {
+    this.idTallerNav = Number(localStorage.getItem('id_taller') || 0);
+
+    if (this.esAdminPlataforma()) {
+      this.menuItems = [
+        { label: 'Dashboard', path: '/dashboard', exact: true },
+        { label: 'Usuarios', path: '/usuarios' },
+        { label: 'Roles', path: '/roles' },
+        { label: 'Suscripciones', path: '/suscripciones' },
+        { label: 'Talleres', path: '/talleres' },
+        { label: 'Tecnicos', path: '/tecnicos' },
+        { label: 'Bitacora', path: '/bitacora' },
+        { label: 'Perfil', path: '/perfil' }
+      ];
+      return;
+    }
+
+    if (this.esAdminTaller()) {
+      if (!this.idTallerNav) {
+        this.menuItems = [];
+        return;
+      }
+
+      this.menuItems = [
+        { label: 'Dashboard', path: '/admin-taller/dashboard', exact: true },
+        { label: 'Tecnicos', path: '/admin-taller/tecnicos' },
+        { label: 'Incidentes', path: '/incidentes-taller' },
+        { label: 'Cotizaciones', path: '/admin-taller/cotizaciones' },
+        { label: 'Mi plan', path: '/admin-taller/mi-plan' },
+        { label: 'Cobertura', path: '/admin-taller/cobertura' },
+        { label: 'Evaluaciones', path: '/admin-taller/evaluaciones' },
+        { label: 'Bitacora', path: '/bitacora' },
+        { label: 'Perfil', path: '/perfil' }
+      ];
+      return;
+    }
+
+    if (this.esTecnico()) {
+      this.menuItems = [
+        { label: 'Dashboard', path: '/tecnico/dashboard', exact: true },
+        { label: 'Incidentes', path: '/tecnico/incidentes' },
+        { label: 'Chat', path: '/tecnico/chat', icon: 'chat' },
+        { label: 'Historial', path: '/tecnico/historial' },
+        { label: 'Evaluaciones', path: '/tecnico/evaluaciones' },
+        { label: 'Perfil', path: '/perfil' }
+      ];
+      return;
+    }
+
+    this.menuItems = [];
   }
 
   private configurarNotificaciones(): void {

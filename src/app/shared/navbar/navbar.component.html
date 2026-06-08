@@ -1,6 +1,6 @@
 <nav class="navbar" [class.menu-open]="menuAbierto">
   <a class="navbar-brand" [routerLink]="getBrandLink()" (click)="cerrarMenu()">
-    <span>🚗</span>
+    <span class="brand-mark" aria-hidden="true">EV</span>
     <span class="brand-text">EmergVial</span>
   </a>
 
@@ -16,6 +16,8 @@
     <span></span>
     <span></span>
   </button>
+
+  <div class="menu-backdrop" *ngIf="usuario && menuAbierto" (click)="cerrarMenu()"></div>
 
   <div class="navbar-panel" *ngIf="usuario" [class.open]="menuAbierto">
     <div class="navbar-links">
@@ -84,7 +86,7 @@
               <strong>{{ item.mensaje }}</strong>
               <small>
                 {{ item.fecha_envio | date:'dd/MM/yyyy HH:mm' }}
-                <span *ngIf="item.id_incidente"> · Incidente #{{ item.id_incidente }}</span>
+                <span *ngIf="item.id_incidente"> - Incidente #{{ item.id_incidente }}</span>
               </small>
               <em>{{ item.leido ? 'Leida' : 'No leida' }}</em>
             </span>
@@ -103,7 +105,7 @@
         </div>
       </div>
 
-      <button class="logout-btn" (click)="logout()">Salir</button>
+      <button class="logout-btn" type="button" (click)="logout()">Salir</button>
     </div>
   </div>
 </nav>
