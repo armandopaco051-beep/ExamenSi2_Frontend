@@ -49,7 +49,7 @@ export class LoginComponent {
             return;
           }
 
-          this.router.navigate(['/admin-taller/mi-plan']);
+          this.router.navigate(['/admin-taller/dashboard']);
           return;
         }
 

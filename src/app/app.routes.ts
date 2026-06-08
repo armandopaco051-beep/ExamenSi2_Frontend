@@ -42,27 +42,28 @@ export const routes: Routes = [
         .then(m => m.SuscripcionesAdminComponent),
     canActivate: [authGuard, rolGuard([1])]
   },
-  {
-    path: 'suscripciones/pagos',
-    loadComponent: () =>
-      import('./pages/suscripciones-pagos/suscripciones-pagos.component')
-        .then(m => m.SuscripcionesPagosComponent),
-    canActivate: [authGuard, rolGuard([1])]
-  },
-  {
-    path: 'suscripciones/success',
-    loadComponent: () =>
-      import('./pages/suscripcion-resultado/suscripcion-resultado.component')
-        .then(m => m.SuscripcionResultadoComponent),
-    canActivate: [authGuard]
-  },
-  {
-    path: 'suscripciones/cancel',
-    loadComponent: () =>
-      import('./pages/suscripcion-resultado/suscripcion-resultado.component')
-        .then(m => m.SuscripcionResultadoComponent),
-    canActivate: [authGuard]
-  },
+  // Stripe checkout temporalmente deshabilitado hasta ajustar el backend/flujo:
+  // {
+  //   path: 'suscripciones/pagos',
+  //   loadComponent: () =>
+  //     import('./pages/suscripciones-pagos/suscripciones-pagos.component')
+  //       .then(m => m.SuscripcionesPagosComponent),
+  //   canActivate: [authGuard, rolGuard([1])]
+  // },
+  // {
+  //   path: 'suscripciones/success',
+  //   loadComponent: () =>
+  //     import('./pages/suscripcion-resultado/suscripcion-resultado.component')
+  //       .then(m => m.SuscripcionResultadoComponent),
+  //   canActivate: [authGuard]
+  // },
+  // {
+  //   path: 'suscripciones/cancel',
+  //   loadComponent: () =>
+  //     import('./pages/suscripcion-resultado/suscripcion-resultado.component')
+  //       .then(m => m.SuscripcionResultadoComponent),
+  //   canActivate: [authGuard]
+  // },
   {
     path: 'incidentes-taller',
     loadComponent: () => import('./pages/incidentes-taller/incidentes-taller.component').then(m => m.IncidentesTallerComponent),
@@ -109,20 +110,21 @@ export const routes: Routes = [
       import('./pages/mi-plan/mi-plan.component').then(m => m.MiPlanComponent),
     canActivate: [authGuard, rolGuard([2])]
   },
-  {
-    path: 'admin-taller/planes',
-    loadComponent: () =>
-      import('./pages/suscripciones-planes/suscripciones-planes.component')
-        .then(m => m.SuscripcionesPlanesComponent),
-    canActivate: [authGuard, rolGuard([2])]
-  },
-  {
-    path: 'admin-taller/suscripcion-pagos',
-    loadComponent: () =>
-      import('./pages/suscripciones-pagos/suscripciones-pagos.component')
-        .then(m => m.SuscripcionesPagosComponent),
-    canActivate: [authGuard, rolGuard([2])]
-  },
+  // Stripe checkout temporalmente deshabilitado hasta ajustar el backend/flujo:
+  // {
+  //   path: 'admin-taller/planes',
+  //   loadComponent: () =>
+  //     import('./pages/suscripciones-planes/suscripciones-planes.component')
+  //       .then(m => m.SuscripcionesPlanesComponent),
+  //   canActivate: [authGuard, rolGuard([2])]
+  // },
+  // {
+  //   path: 'admin-taller/suscripcion-pagos',
+  //   loadComponent: () =>
+  //     import('./pages/suscripciones-pagos/suscripciones-pagos.component')
+  //       .then(m => m.SuscripcionesPagosComponent),
+  //   canActivate: [authGuard, rolGuard([2])]
+  // },
   
   {
     path: 'bitacora',

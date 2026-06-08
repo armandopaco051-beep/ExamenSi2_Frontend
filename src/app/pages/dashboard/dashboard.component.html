@@ -66,16 +66,16 @@
                 <strong>{{ tenant.nombre }}</strong>
                 <small>Taller #{{ tenant.id_taller }}</small>
               </td>
-              <td>{{ tenant.dominio }}</td>
+              <td>{{ getDominioTenant(tenant) }}</td>
               <td>
-                <span class="subscription-status" [ngClass]="claseSuscripcion(tenant.estado_suscripcion)">
-                  {{ tenant.estado_suscripcion }}
+                <span class="subscription-status" [ngClass]="claseSuscripcion(getEstadoSuscripcion(tenant))">
+                  {{ getEstadoSuscripcion(tenant) }}
                 </span>
               </td>
-              <td>{{ tenant.fecha_vencimiento | date:'dd/MM/yyyy' }}</td>
+              <td>{{ getFechaVencimientoSuscripcion(tenant) | date:'dd/MM/yyyy' }}</td>
               <td>
-                <strong [class.subscription-days-danger]="diasSuscripcion(tenant.fecha_vencimiento) <= 7">
-                  {{ diasSuscripcion(tenant.fecha_vencimiento) }}
+                <strong [class.subscription-days-danger]="diasSuscripcion(getFechaVencimientoSuscripcion(tenant)) <= 7">
+                  {{ diasSuscripcion(getFechaVencimientoSuscripcion(tenant)) }}
                 </strong>
               </td>
             </tr>

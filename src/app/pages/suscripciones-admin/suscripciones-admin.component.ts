@@ -1,7 +1,6 @@
 import { CommonModule, DatePipe } from '@angular/common';
 import { Component, OnInit } from '@angular/core';
 import { FormsModule } from '@angular/forms';
-import { RouterLink } from '@angular/router';
 
 import { SuscripcionService } from '../../core/services/suscripcion.service';
 import { TallerService } from '../../core/services/taller.service';
@@ -18,7 +17,7 @@ import { NavbarComponent } from '../../shared/navbar/navbar.component';
 @Component({
   selector: 'app-suscripciones-admin',
   standalone: true,
-  imports: [CommonModule, DatePipe, FormsModule, RouterLink, NavbarComponent],
+  imports: [CommonModule, DatePipe, FormsModule, NavbarComponent],
   templateUrl: './suscripciones-admin.component.html',
   styleUrls: ['./suscripciones-admin.component.scss']
 })
@@ -27,8 +26,10 @@ export class SuscripcionesAdminComponent implements OnInit {
   talleres: Taller[] = [];
   loading = true;
   accionLoading = false;
+  regularizando = false;
   error = '';
   mensajeExito = '';
+  resultadoBackfill: any = null;
 
   mostrarCrear = false;
   mostrarCuotas = false;
@@ -97,17 +98,17 @@ export class SuscripcionesAdminComponent implements OnInit {
   }
 
   get totalActivas(): number {
-    return this.tenants.filter(item => item.estado_suscripcion === 'ACTIVA').length;
+    return this.tenants.filter(item => this.getEstadoSuscripcion(item) === 'ACTIVA').length;
   }
 
   get totalSuspendidas(): number {
-    return this.tenants.filter(item => item.estado_suscripcion === 'SUSPENDIDA').length;
+    return this.tenants.filter(item => this.getEstadoSuscripcion(item) === 'SUSPENDIDA').length;
   }
 
   get totalPorVencer(): number {
     return this.tenants.filter(item => {
-      const dias = this.diasRestantes(item.fecha_vencimiento);
-      return item.estado_suscripcion === 'ACTIVA' && dias >= 0 && dias <= 7;
+      const dias = this.diasRestantes(this.getFechaVencimiento(item));
+      return this.getEstadoSuscripcion(item) === 'ACTIVA' && dias >= 0 && dias <= 7;
     }).length;
   }
 
@@ -115,6 +116,7 @@ export class SuscripcionesAdminComponent implements OnInit {
     this.formTenant = this.formInicial();
     this.error = '';
     this.mensajeExito = '';
+    this.resultadoBackfill = null;
     this.mostrarCrear = true;
   }
 
@@ -165,9 +167,10 @@ export class SuscripcionesAdminComponent implements OnInit {
 
   abrirGestion(tenant: TenantSuscripcion): void {
     this.tenantSeleccionado = tenant;
-    this.renovarDias = Number(tenant.plan?.duracion_dias || 30);
-    this.estadoSeleccionado = this.esEstadoValido(tenant.estado_suscripcion)
-      ? tenant.estado_suscripcion as EstadoSuscripcion
+    this.renovarDias = this.getPlanDuracion(tenant);
+    const estado = this.getEstadoSuscripcion(tenant);
+    this.estadoSeleccionado = this.esEstadoValido(estado)
+      ? estado as EstadoSuscripcion
       : 'ACTIVA';
     this.cargarCuotas(tenant);
   }
@@ -239,6 +242,27 @@ export class SuscripcionesAdminComponent implements OnInit {
     });
   }
 
+  regularizarTalleresExistentes(): void {
+    this.regularizando = true;
+    this.error = '';
+    this.mensajeExito = '';
+    this.resultadoBackfill = null;
+
+    this.suscripcionService.regularizarTenantsGratis().subscribe({
+      next: respuesta => {
+        this.resultadoBackfill = respuesta;
+        this.mensajeExito = respuesta?.mensaje || 'Regularizacion completada.';
+        this.regularizando = false;
+        this.cargarDatos();
+      },
+      error: err => {
+        console.error('ERROR BACKFILL TENANTS GRATIS:', err);
+        this.error = err.error?.detail || 'No se pudo regularizar talleres existentes.';
+        this.regularizando = false;
+      }
+    });
+  }
+
   diasRestantes(fecha: string): number {
     if (!fecha) return 0;
     const vencimiento = new Date(`${fecha}T23:59:59`);
@@ -258,6 +282,38 @@ export class SuscripcionesAdminComponent implements OnInit {
     if (valor === 'SUSPENDIDA') return 'suspended';
     if (valor === 'VENCIDA' || valor === 'CANCELADA') return 'expired';
     return 'neutral';
+  }
+
+  getPlanNombre(tenant: TenantSuscripcion): string {
+    return tenant.suscripcion?.plan?.nombre || tenant.plan?.nombre || 'Plan Estandar';
+  }
+
+  getPlanDuracion(tenant: TenantSuscripcion): number {
+    return Number(tenant.suscripcion?.plan?.duracion_dias ?? tenant.plan?.duracion_dias ?? 30);
+  }
+
+  getEstadoSuscripcion(tenant: TenantSuscripcion): string {
+    return String(tenant.suscripcion?.estado || tenant.estado_suscripcion || 'ACTIVA').toUpperCase();
+  }
+
+  getFechaInicio(tenant: TenantSuscripcion): string {
+    return tenant.suscripcion?.fecha_inicio || tenant.fecha_inicio || '';
+  }
+
+  getFechaVencimiento(tenant: TenantSuscripcion): string {
+    return tenant.suscripcion?.fecha_vencimiento || tenant.fecha_vencimiento || '';
+  }
+
+  getDominio(tenant: TenantSuscripcion): string {
+    const dominio = tenant.dominio;
+    if (!dominio) return 'Sin dominio registrado';
+    return typeof dominio === 'string' ? dominio : dominio.dominio || 'Sin dominio registrado';
+  }
+
+  getEstadoDominio(tenant: TenantSuscripcion): string {
+    const dominio = tenant.dominio;
+    if (dominio && typeof dominio !== 'string') return dominio.estado || 'ACTIVO';
+    return tenant.estado_dominio || 'ACTIVO';
   }
 
   private formInicial(): CrearTenantPayload {

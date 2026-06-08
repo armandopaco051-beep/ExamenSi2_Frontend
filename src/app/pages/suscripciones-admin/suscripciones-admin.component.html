@@ -8,13 +8,25 @@
       <p>Supervisa dominios, vigencia y cuotas de cada taller.</p>
     </div>
 
-    <button class="btn-primary" (click)="abrirCrear()" [disabled]="talleresSinTenant.length === 0">
-      Crear tenant
-    </button>
+    <div class="header-actions">
+      <button class="btn-secondary" (click)="regularizarTalleresExistentes()" [disabled]="regularizando">
+        {{ regularizando ? 'Regularizando...' : 'Regularizar talleres existentes' }}
+      </button>
+      <button class="btn-primary" (click)="abrirCrear()" [disabled]="talleresSinTenant.length === 0">
+        Crear tenant
+      </button>
+    </div>
   </header>
 
   <div *ngIf="error" class="alert alert-error">{{ error }}</div>
   <div *ngIf="mensajeExito" class="alert alert-success">{{ mensajeExito }}</div>
+  <div *ngIf="resultadoBackfill" class="backfill-result">
+    <span>Talleres procesados: <strong>{{ resultadoBackfill.talleres_procesados || 0 }}</strong></span>
+    <span>Tenants creados: <strong>{{ resultadoBackfill.tenants_creados || 0 }}</strong></span>
+    <span>Ya existian: <strong>{{ resultadoBackfill.tenants_existentes || 0 }}</strong></span>
+    <span>Plan: <strong>{{ resultadoBackfill.plan || 'Plan Estandar' }}</strong></span>
+    <span>Precio: <strong>{{ resultadoBackfill.precio || 0 }} Bs</strong></span>
+  </div>
   <div *ngIf="loading" class="state-box">Cargando tenants y suscripciones...</div>
 
   <ng-container *ngIf="!loading">
@@ -66,33 +78,30 @@
                 <small>Tenant #{{ tenant.id }} · Taller #{{ tenant.id_taller }}</small>
               </td>
               <td>
-                <strong>{{ tenant.dominio }}</strong>
-                <small>{{ tenant.estado_dominio }}</small>
+                <strong>{{ getDominio(tenant) }}</strong>
+                <small>{{ getEstadoDominio(tenant) }}</small>
               </td>
               <td>
-                <strong>{{ tenant.plan?.nombre || 'Plan Estandar' }}</strong>
-                <small>{{ tenant.plan?.duracion_dias || 30 }} dias</small>
+                <strong>{{ getPlanNombre(tenant) }}</strong>
+                <small>{{ getPlanDuracion(tenant) }} dias</small>
               </td>
               <td>
-                <span class="status-chip" [ngClass]="estadoClase(tenant.estado_suscripcion)">
-                  {{ tenant.estado_suscripcion }}
+                <span class="status-chip" [ngClass]="estadoClase(getEstadoSuscripcion(tenant))">
+                  {{ getEstadoSuscripcion(tenant) }}
                 </span>
               </td>
               <td>
-                <strong>{{ tenant.fecha_inicio | date:'dd/MM/yyyy' }}</strong>
-                <small>Hasta {{ tenant.fecha_vencimiento | date:'dd/MM/yyyy' }}</small>
+                <strong>{{ getFechaInicio(tenant) | date:'dd/MM/yyyy' }}</strong>
+                <small>Hasta {{ getFechaVencimiento(tenant) | date:'dd/MM/yyyy' }}</small>
               </td>
               <td>
-                <strong [class.days-danger]="diasRestantes(tenant.fecha_vencimiento) <= 7">
-                  {{ diasRestantes(tenant.fecha_vencimiento) > 0 ? diasRestantes(tenant.fecha_vencimiento) : 0 }}
+                <strong [class.days-danger]="diasRestantes(getFechaVencimiento(tenant)) <= 7">
+                  {{ diasRestantes(getFechaVencimiento(tenant)) > 0 ? diasRestantes(getFechaVencimiento(tenant)) : 0 }}
                 </strong>
                 <small>restantes</small>
               </td>
               <td>
                 <button class="btn-manage" (click)="abrirGestion(tenant)">Gestionar</button>
-                <a class="btn-manage link" [routerLink]="['/suscripciones/pagos']" [queryParams]="{ tenant: tenant.id }">
-                  Pagos
-                </a>
               </td>
             </tr>
             <tr *ngIf="tenants.length === 0">
@@ -168,7 +177,7 @@
       <div>
         <span class="eyebrow">Tenant #{{ tenantSeleccionado.id }}</span>
         <h2>{{ tenantSeleccionado.nombre }}</h2>
-        <p>{{ tenantSeleccionado.dominio }}</p>
+        <p>{{ getDominio(tenantSeleccionado) }}</p>
       </div>
       <button class="close-btn" (click)="cerrarGestion()">×</button>
     </div>

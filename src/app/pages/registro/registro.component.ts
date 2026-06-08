@@ -100,7 +100,7 @@ export class RegistroComponent {
       horario_fin: this.form.horario_fin
     }).subscribe({
       next: () => {
-        this.success = 'Solicitud enviada. Cuando el administrador la apruebe, inicia sesion para elegir y pagar tu plan.';
+        this.success = 'Solicitud enviada. Espera aprobación del administrador.';
         this.loading = false;
       },
       error: (err) => {

@@ -9,6 +9,7 @@
 .table-head,
 .modal-head,
 .modal-actions,
+.header-actions,
 .inline-control {
   display: flex;
   align-items: center;
@@ -168,6 +169,30 @@ table {
   font-weight: 800;
   cursor: pointer;
   text-decoration: none;
+}
+
+.header-actions {
+  justify-content: flex-end;
+  flex-wrap: wrap;
+}
+
+.backfill-result {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 10px;
+  margin-bottom: 16px;
+
+  span {
+    background: #0b1b2e;
+    border: 1px solid rgba(45,212,191,.18);
+    border-radius: 8px;
+    color: #9fb8d3;
+    padding: 10px 12px;
+  }
+
+  strong {
+    color: #73f0cf;
+  }
 }
 
 .empty {

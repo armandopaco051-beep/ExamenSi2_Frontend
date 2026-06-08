@@ -1,6 +1,5 @@
 import { CommonModule, DatePipe } from '@angular/common';
 import { Component, OnInit } from '@angular/core';
-import { RouterLink } from '@angular/router';
 
 import { SuscripcionService } from '../../core/services/suscripcion.service';
 import { CuotaValores, CuotasTenant, TenantSuscripcion } from '../../models/suscripcion.model';
@@ -9,7 +8,7 @@ import { NavbarComponent } from '../../shared/navbar/navbar.component';
 @Component({
   selector: 'app-mi-plan',
   standalone: true,
-  imports: [CommonModule, DatePipe, RouterLink, NavbarComponent],
+  imports: [CommonModule, DatePipe, NavbarComponent],
   templateUrl: './mi-plan.component.html',
   styleUrls: ['./mi-plan.component.scss']
 })
@@ -17,7 +16,6 @@ export class MiPlanComponent implements OnInit {
   plan: TenantSuscripcion | null = null;
   cuotas: CuotasTenant | null = null;
   loading = true;
-  accionLoading = false;
   error = '';
 
   readonly cuotaClaves: Array<{ key: keyof CuotaValores; label: string; unidad?: string }> = [
@@ -47,7 +45,7 @@ export class MiPlanComponent implements OnInit {
       error: err => {
         console.error('ERROR MI PLAN:', err);
         this.error = err.status === 403
-          ? 'Tu suscripcion esta vencida o suspendida. Renueva tu plan para continuar usando el sistema.'
+          ? 'No tienes permiso para consultar este plan.'
           : err.error?.detail || 'No se pudo cargar la informacion del plan.';
         this.loading = false;
       }
@@ -69,7 +67,7 @@ export class MiPlanComponent implements OnInit {
   }
 
   diasRestantes(): number {
-    const fecha = this.plan?.fecha_vencimiento;
+    const fecha = this.getFechaVencimiento();
     if (!fecha) return 0;
     return Math.max(Math.ceil((new Date(`${fecha}T23:59:59`).getTime() - Date.now()) / 86400000), 0);
   }
@@ -82,41 +80,74 @@ export class MiPlanComponent implements OnInit {
   }
 
   estadoClase(): string {
-    const estado = String(this.plan?.estado_suscripcion || '').toUpperCase();
-    if (estado === 'ACTIVA') return 'active';
+    const estado = this.getEstadoSuscripcion().toUpperCase();
+    if (estado === 'ACTIVA' || estado === 'ACTIVO') return 'active';
     if (estado === 'SUSPENDIDA' || estado === 'PENDIENTE_PAGO') return 'suspended';
     return 'expired';
   }
 
-  debePagar(): boolean {
-    const estado = String(this.plan?.estado_suscripcion || '').toUpperCase();
-    return ['PENDIENTE_PAGO', 'VENCIDA', 'SUSPENDIDA'].includes(estado);
-  }
-
   precioPlan(): string {
-    return `Bs ${Number(this.plan?.plan?.precio || 0).toFixed(2)}`;
+    const precio = this.getPrecioPlan();
+    if (precio <= 0) return 'Plan gratuito / 0 Bs';
+    return `Bs ${precio.toFixed(2)}`;
   }
 
-  pagarSuscripcion(): void {
-    if (!this.plan?.id) return;
+  getPlanNombre(): string {
+    return this.plan?.suscripcion?.plan?.nombre || this.plan?.plan?.nombre || 'Plan Estandar';
+  }
 
-    this.accionLoading = true;
-    this.error = '';
-    const origin = window.location.origin;
+  getPrecioPlan(): number {
+    return Number(this.plan?.suscripcion?.plan?.precio ?? this.plan?.plan?.precio ?? 0);
+  }
 
-    this.suscripcionService.crearCheckout(this.plan.id, {
-      success_url: `${origin}/suscripciones/success?session_id={CHECKOUT_SESSION_ID}`,
-      cancel_url: `${origin}/suscripciones/cancel`
-    }).subscribe({
-      next: checkout => {
-        window.location.href = checkout.checkout_url;
-      },
-      error: err => {
-        this.error = err.status === 403
-          ? 'Tu suscripcion esta vencida o suspendida. Renueva tu plan para continuar usando el sistema.'
-          : err.error?.detail || 'No se pudo iniciar el pago con Stripe.';
-        this.accionLoading = false;
-      }
-    });
+  getEstadoSuscripcion(): string {
+    return String(this.plan?.suscripcion?.estado || this.plan?.estado_suscripcion || 'ACTIVA');
+  }
+
+  getFechaInicio(): string {
+    return this.plan?.suscripcion?.fecha_inicio || this.plan?.fecha_inicio || '';
+  }
+
+  getFechaVencimiento(): string {
+    return this.plan?.suscripcion?.fecha_vencimiento || this.plan?.fecha_vencimiento || '';
+  }
+
+  getDominio(): string {
+    const dominio = this.plan?.dominio;
+    if (!dominio) return 'Sin dominio registrado';
+    return typeof dominio === 'string' ? dominio : dominio.dominio || 'Sin dominio registrado';
+  }
+
+  getEstadoDominio(): string {
+    const dominio = this.plan?.dominio;
+    if (dominio && typeof dominio !== 'string') return dominio.estado || 'ACTIVO';
+    return this.plan?.estado_dominio || 'ACTIVO';
+  }
+
+  getPlanDuracion(): number {
+    return Number(this.plan?.suscripcion?.plan?.duracion_dias ?? this.plan?.plan?.duracion_dias ?? 30);
+  }
+
+  getLimite(key: keyof CuotaValores): number | string {
+    const desdeCuotas = this.cuotas?.limites?.[key];
+    if (desdeCuotas !== undefined && desdeCuotas !== null) return desdeCuotas;
+
+    const planActual: any = this.plan?.suscripcion?.plan || this.plan?.plan;
+    const mapa: Record<keyof CuotaValores, string> = {
+      talleres: 'limite_talleres',
+      tecnicos: 'limite_tecnicos',
+      usuarios: 'limite_usuarios',
+      incidentes_mensuales: 'limite_incidentes_mensuales',
+      notificaciones_push: 'limite_notificaciones_push',
+      almacenamiento_gb: 'limite_almacenamiento_gb'
+    };
+
+    const valor = planActual?.[mapa[key]];
+    return valor ?? 'No definido';
+  }
+
+  tieneAlertaSuscripcion(): boolean {
+    const estado = this.getEstadoSuscripcion().toUpperCase();
+    return estado === 'VENCIDA' || estado === 'PENDIENTE_PAGO' || estado === 'SUSPENDIDA';
   }
 }

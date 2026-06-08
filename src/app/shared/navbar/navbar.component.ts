@@ -90,8 +90,6 @@ export class NavbarComponent implements OnDestroy {
         { label: 'Incidentes', path: '/incidentes-taller' },
         { label: 'Cotizaciones', path: '/admin-taller/cotizaciones' },
         { label: 'Mi plan', path: '/admin-taller/mi-plan' },
-        { label: 'Planes', path: '/admin-taller/planes' },
-        { label: 'Pagos', path: '/admin-taller/suscripcion-pagos' },
         { label: 'Cobertura', path: '/admin-taller/cobertura' },
         { label: 'Evaluaciones', path: '/admin-taller/evaluaciones' },
         { label: 'Bitácora', path: '/bitacora' }, //arreglar esa bitacora 

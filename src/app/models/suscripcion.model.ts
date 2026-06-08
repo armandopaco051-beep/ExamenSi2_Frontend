@@ -5,17 +5,30 @@ export interface PlanSuscripcion {
   nombre: string;
   duracion_dias: number;
   precio: number;
-  dominio_incluido: boolean;
-  dominio_personalizado: boolean;
-  estado: string;
-  limite_talleres: number;
-  limite_tecnicos: number;
-  limite_usuarios: number;
-  limite_incidentes_mensuales: number;
-  limite_notificaciones_push: number;
-  limite_almacenamiento_gb: number;
+  dominio_incluido?: boolean;
+  dominio_personalizado?: boolean;
+  estado?: string;
+  limite_talleres?: number;
+  limite_tecnicos?: number;
+  limite_usuarios?: number;
+  limite_incidentes_mensuales?: number;
+  limite_notificaciones_push?: number;
+  limite_almacenamiento_gb?: number;
   caracteristicas?: string[] | string;
   descripcion?: string;
+}
+
+export interface DominioTenant {
+  dominio: string;
+  tipo?: string;
+  estado?: string;
+}
+
+export interface SuscripcionActual {
+  plan?: PlanSuscripcion;
+  estado?: EstadoSuscripcion | string;
+  fecha_inicio?: string;
+  fecha_vencimiento?: string;
 }
 
 export interface TenantSuscripcion {
@@ -24,14 +37,17 @@ export interface TenantSuscripcion {
   slug: string;
   id_taller: number;
   estado: string;
-  fecha_creacion: string;
-  dominio: string;
-  estado_dominio: string;
-  id_suscripcion: number;
-  estado_suscripcion: EstadoSuscripcion | string;
-  fecha_inicio: string;
-  fecha_vencimiento: string;
+  fecha_creacion?: string;
+  dominio?: string | DominioTenant;
+  estado_dominio?: string;
+  id_suscripcion?: number;
+  estado_suscripcion?: EstadoSuscripcion | string;
+  fecha_inicio?: string;
+  fecha_vencimiento?: string;
+  stripe_customer_id?: string | null;
+  stripe_subscription_id?: string | null;
   plan?: PlanSuscripcion;
+  suscripcion?: SuscripcionActual;
 }
 
 export interface CuotaValores {

@@ -102,6 +102,10 @@ export class SuscripcionService {
     return this.http.get<ComprobanteSuscripcion>(`${this.apiUrl}/comprobantes/${idComprobante}`);
   }
 
+  regularizarTenantsGratis(): Observable<any> {
+    return this.http.post<any>(`${this.apiUrl}/backfill/tenants-gratis`, null);
+  }
+
   obtenerMiPlan(): Observable<TenantSuscripcion> {
     return this.http.get<TenantSuscripcion>(`${this.apiUrl}/mi-plan`);
   }

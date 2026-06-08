@@ -162,16 +162,16 @@ export class DashboardComponent implements OnInit, AfterViewInit, OnDestroy {
   }
 
   get totalSuscripcionesActivas(): number {
-    return this.tenants.filter(item => item.estado_suscripcion === 'ACTIVA').length;
+    return this.tenants.filter(item => this.getEstadoSuscripcion(item) === 'ACTIVA').length;
   }
 
   get totalSuscripcionesSuspendidas(): number {
-    return this.tenants.filter(item => item.estado_suscripcion === 'SUSPENDIDA').length;
+    return this.tenants.filter(item => this.getEstadoSuscripcion(item) === 'SUSPENDIDA').length;
   }
 
   get totalSuscripcionesVencidas(): number {
     return this.tenants.filter(item =>
-      item.estado_suscripcion === 'VENCIDA' || item.estado_suscripcion === 'CANCELADA'
+      this.getEstadoSuscripcion(item) === 'VENCIDA' || this.getEstadoSuscripcion(item) === 'CANCELADA'
     ).length;
   }
 
@@ -184,6 +184,20 @@ export class DashboardComponent implements OnInit, AfterViewInit, OnDestroy {
     if (estado === 'ACTIVA') return 'subscription-active';
     if (estado === 'SUSPENDIDA') return 'subscription-suspended';
     return 'subscription-expired';
+  }
+
+  getEstadoSuscripcion(tenant: TenantSuscripcion): string {
+    return String(tenant.suscripcion?.estado || tenant.estado_suscripcion || 'ACTIVA').toUpperCase();
+  }
+
+  getFechaVencimientoSuscripcion(tenant: TenantSuscripcion): string {
+    return tenant.suscripcion?.fecha_vencimiento || tenant.fecha_vencimiento || '';
+  }
+
+  getDominioTenant(tenant: TenantSuscripcion): string {
+    const dominio = tenant.dominio;
+    if (!dominio) return 'Sin dominio registrado';
+    return typeof dominio === 'string' ? dominio : dominio.dominio || 'Sin dominio registrado';
   }
   aceptarsolicitud(s: any): void {
     this.solSel =s; 

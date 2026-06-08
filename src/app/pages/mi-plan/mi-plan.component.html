@@ -7,35 +7,28 @@
       <h1>Mi plan</h1>
       <p>Consulta la vigencia y el consumo de infraestructura de tu taller.</p>
     </div>
-    <div class="header-actions">
-      <a class="btn-secondary" routerLink="/admin-taller/suscripcion-pagos">Historial de pagos</a>
-      <a class="btn-secondary" routerLink="/admin-taller/planes">Cambiar plan</a>
-      <button class="btn-secondary" (click)="cargarPlan()" [disabled]="loading">Actualizar</button>
-    </div>
+    <button class="btn-secondary" (click)="cargarPlan()" [disabled]="loading">Actualizar</button>
   </header>
 
   <div *ngIf="loading" class="state-box">Cargando plan y cuotas...</div>
   <div *ngIf="error && !loading" class="state-box error">{{ error }}</div>
 
   <ng-container *ngIf="!loading && !error && plan">
+    <div *ngIf="tieneAlertaSuscripcion()" class="state-box warning">
+      Tu suscripcion esta vencida o pendiente. Regulariza tu plan para continuar usando el sistema.
+    </div>
+
     <section class="plan-hero">
       <div>
         <span class="eyebrow">Plan asignado</span>
-        <h2>{{ plan.plan?.nombre || 'Plan Estandar' }}</h2>
-        <p>{{ plan.dominio }}</p>
+        <h2>{{ getPlanNombre() }}</h2>
+        <p>{{ getDominio() }}</p>
       </div>
 
       <div class="hero-status">
-        <span class="status-chip" [ngClass]="estadoClase()">{{ plan.estado_suscripcion }}</span>
+        <span class="status-chip" [ngClass]="estadoClase()">{{ getEstadoSuscripcion() }}</span>
         <span class="price-chip">{{ precioPlan() }}</span>
         <strong>{{ diasRestantes() }} dias restantes</strong>
-        <button
-          *ngIf="debePagar()"
-          class="btn-pay"
-          (click)="pagarSuscripcion()"
-          [disabled]="accionLoading">
-          {{ accionLoading ? 'Abriendo Stripe...' : 'Pagar suscripcion' }}
-        </button>
       </div>
     </section>
 
@@ -47,23 +40,23 @@
       </article>
       <article>
         <span>Dominio</span>
-        <strong>{{ plan.dominio }}</strong>
-        <small>{{ plan.estado_dominio }}</small>
+        <strong>{{ getDominio() }}</strong>
+        <small>{{ getEstadoDominio() }}</small>
       </article>
       <article>
         <span>Fecha de inicio</span>
-        <strong>{{ plan.fecha_inicio | date:'dd/MM/yyyy' }}</strong>
+        <strong>{{ getFechaInicio() | date:'dd/MM/yyyy' }}</strong>
         <small>Periodo actual</small>
       </article>
       <article>
         <span>Fecha de vencimiento</span>
-        <strong>{{ plan.fecha_vencimiento | date:'dd/MM/yyyy' }}</strong>
+        <strong>{{ getFechaVencimiento() | date:'dd/MM/yyyy' }}</strong>
         <small>{{ diasRestantes() }} dias disponibles</small>
       </article>
       <article>
-        <span>Precio del plan</span>
+        <span>Precio</span>
         <strong>{{ precioPlan() }}</strong>
-        <small>Moneda BOB</small>
+        <small>Plan actual</small>
       </article>
     </section>
 
@@ -101,17 +94,17 @@
       <div class="section-head">
         <div>
           <h2>Limites incluidos</h2>
-          <p>Configuracion del {{ plan.plan?.nombre || 'Plan Estandar' }}.</p>
+          <p>Configuracion del {{ getPlanNombre() }}.</p>
         </div>
       </div>
 
       <div class="limits-grid">
-        <div><span>Tecnicos</span><strong>{{ plan.plan?.limite_tecnicos }}</strong></div>
-        <div><span>Usuarios</span><strong>{{ plan.plan?.limite_usuarios }}</strong></div>
-        <div><span>Incidentes / mes</span><strong>{{ plan.plan?.limite_incidentes_mensuales }}</strong></div>
-        <div><span>Notificaciones push</span><strong>{{ plan.plan?.limite_notificaciones_push }}</strong></div>
-        <div><span>Almacenamiento</span><strong>{{ plan.plan?.limite_almacenamiento_gb }} GB</strong></div>
-        <div><span>Duracion</span><strong>{{ plan.plan?.duracion_dias }} dias</strong></div>
+        <div><span>Tecnicos</span><strong>{{ getLimite('tecnicos') }}</strong></div>
+        <div><span>Usuarios</span><strong>{{ getLimite('usuarios') }}</strong></div>
+        <div><span>Incidentes / mes</span><strong>{{ getLimite('incidentes_mensuales') }}</strong></div>
+        <div><span>Notificaciones push</span><strong>{{ getLimite('notificaciones_push') }}</strong></div>
+        <div><span>Almacenamiento</span><strong>{{ getLimite('almacenamiento_gb') }} GB</strong></div>
+        <div><span>Duracion</span><strong>{{ getPlanDuracion() }} dias</strong></div>
       </div>
     </section>
   </ng-container>
