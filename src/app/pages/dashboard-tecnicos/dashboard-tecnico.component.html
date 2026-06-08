@@ -1,0 +1,160 @@
+<app-navbar></app-navbar>
+
+<div class="tecnico-page">
+
+  <div *ngIf="loading" class="state-box">
+    Cargando dashboard técnico...
+  </div>
+
+  <div *ngIf="error && !loading" class="state-box error">
+    {{ error }}
+  </div>
+
+  <ng-container *ngIf="!loading && !error">
+
+    <section class="hero-panel">
+      <div>
+        <span class="eyebrow">Panel operativo</span>
+        <h1>Hola, {{ tecnico.nombre }}</h1>
+        <p>Código técnico: {{ tecnico.codigo }} · Estado actual: {{ tecnico.estado }}</p>
+      </div>
+
+      <div class="status-pill" [ngClass]="incidenteActual ? 'ocupado' : 'disponible'">
+        {{ tecnico.estado }}
+      </div>
+    </section>
+
+    <section class="stats-grid">
+      <div class="stat-card">
+        <span>Servicio activo</span>
+        <strong>{{ resumen.activos }}</strong>
+      </div>
+
+      <div class="stat-card">
+        <span>Finalizados</span>
+        <strong>{{ resumen.finalizados }}</strong>
+      </div>
+
+      <div class="stat-card">
+        <span>Atendidos hoy</span>
+        <strong>{{ resumen.hoy }}</strong>
+      </div>
+
+      <div class="stat-card">
+        <span>Calificación</span>
+        <strong>{{ resumen.calificacion }}</strong>
+      </div>
+    </section>
+
+    <section class="main-grid">
+
+      <div class="card-large" *ngIf="incidenteActual; else sinIncidente">
+        <div class="card-head">
+          <div>
+            <span class="eyebrow">Incidente actual</span>
+            <h2>#EV-{{ incidenteActual.id_incidente }} · {{ incidenteActual.categoria }}</h2>
+          </div>
+
+          <span class="estado-chip">
+            {{ incidenteActual.estado }}
+          </span>
+        </div>
+
+        <p class="descripcion">
+          {{ incidenteActual.descripcion }}
+        </p>
+
+        <div class="info-grid">
+          <div>
+            <span>Cliente</span>
+            <strong>{{ incidenteActual.cliente }}</strong>
+          </div>
+
+          <div>
+            <span>Teléfono</span>
+            <strong>{{ incidenteActual.telefono }}</strong>
+          </div>
+
+          <div>
+            <span>Fecha</span>
+            <strong>{{ incidenteActual.fecha | date:'dd/MM/yyyy HH:mm' }}</strong>
+          </div>
+
+          <div>
+            <span>Ubicación</span>
+            <strong>{{ incidenteActual.latitud }}, {{ incidenteActual.longitud }}</strong>
+          </div>
+        </div>
+
+        <div class="actions">
+          <button class="btn-secondary" (click)="verUbicacionCliente()">
+            Ver ubicación del cliente
+          </button>
+
+          <button class="btn-primary" (click)="iniciarRuta()">
+            Iniciar ruta
+          </button>
+
+          <button class="btn-success" (click)="finalizarServicio()">
+            Finalizar servicio
+          </button>
+        </div>
+      </div>
+
+      <ng-template #sinIncidente>
+        <div class="card-large empty-service">
+          <span class="eyebrow">Sin servicio activo</span>
+          <h2>No tienes incidentes asignados actualmente</h2>
+          <p>
+            Cuando el administrador del taller te asigne un incidente,
+            aparecerá en esta sección.
+          </p>
+        </div>
+      </ng-template>
+
+      <div class="map-card">
+        <span class="eyebrow">Geolocalización</span>
+        <h3>Seguimiento en tiempo real</h3>
+
+        <div class="fake-map">
+          <div class="map-point tecnico">T</div>
+          <div class="map-line"></div>
+          <div class="map-point cliente">C</div>
+        </div>
+
+        <p>
+          Cuando el técnico inicie ruta, su ubicación podrá enviarse al cliente en tiempo real.
+        </p>
+      </div>
+
+    </section>
+
+    <section class="history-card">
+      <div class="card-head">
+        <h2>Historial reciente</h2>
+        <a routerLink="/tecnico/historial">Ver todo</a>
+      </div>
+
+      <div class="history-list" *ngIf="historialPreview.length > 0; else sinHistorial">
+        <div class="history-item" *ngFor="let h of historialPreview">
+          <div>
+            <strong>#EV-{{ h.id_incidente }} · {{ h.categoria }}</strong>
+            <small>{{ h.cliente }} · {{ h.fecha | date:'dd/MM/yyyy HH:mm' }}</small>
+          </div>
+
+          <span class="estado-ok">
+            {{ h.estado }}
+          </span>
+        </div>
+      </div>
+
+      <ng-template #sinHistorial>
+        <div class="empty-history">
+          No hay historial de incidentes todavía.
+        </div>
+      </ng-template>
+    </section>
+
+  </ng-container>
+
+</div>

@@ -1,0 +1,221 @@
+<app-navbar></app-navbar>
+
+<main class="subscriptions-page">
+  <header class="page-header">
+    <div>
+      <span class="eyebrow">Infraestructura multitenant</span>
+      <h1>Tenants y Suscripciones</h1>
+      <p>Supervisa dominios, vigencia y cuotas de cada taller.</p>
+    </div>
+
+    <button class="btn-primary" (click)="abrirCrear()" [disabled]="talleresSinTenant.length === 0">
+      Crear tenant
+    </button>
+  </header>
+
+  <div *ngIf="error" class="alert alert-error">{{ error }}</div>
+  <div *ngIf="mensajeExito" class="alert alert-success">{{ mensajeExito }}</div>
+  <div *ngIf="loading" class="state-box">Cargando tenants y suscripciones...</div>
+
+  <ng-container *ngIf="!loading">
+    <section class="summary-grid">
+      <article>
+        <span>Total suscripciones</span>
+        <strong>{{ tenants.length }}</strong>
+      </article>
+      <article class="success">
+        <span>Activas</span>
+        <strong>{{ totalActivas }}</strong>
+      </article>
+      <article class="warning">
+        <span>Vencen en 7 dias</span>
+        <strong>{{ totalPorVencer }}</strong>
+      </article>
+      <article class="danger">
+        <span>Suspendidas</span>
+        <strong>{{ totalSuspendidas }}</strong>
+      </article>
+    </section>
+
+    <section class="tenant-table">
+      <div class="table-head">
+        <div>
+          <h2>Talleres con tenant</h2>
+          <p>{{ talleresSinTenant.length }} talleres disponibles para crear tenant.</p>
+        </div>
+        <button class="btn-secondary" (click)="cargarDatos()">Actualizar</button>
+      </div>
+
+      <div class="table-scroll">
+        <table>
+          <thead>
+            <tr>
+              <th>Taller / Tenant</th>
+              <th>Dominio</th>
+              <th>Plan</th>
+              <th>Suscripcion</th>
+              <th>Vigencia</th>
+              <th>Dias</th>
+              <th>Acciones</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr *ngFor="let tenant of tenants">
+              <td>
+                <strong>{{ tenant.nombre }}</strong>
+                <small>Tenant #{{ tenant.id }} · Taller #{{ tenant.id_taller }}</small>
+              </td>
+              <td>
+                <strong>{{ tenant.dominio }}</strong>
+                <small>{{ tenant.estado_dominio }}</small>
+              </td>
+              <td>
+                <strong>{{ tenant.plan?.nombre || 'Plan Estandar' }}</strong>
+                <small>{{ tenant.plan?.duracion_dias || 30 }} dias</small>
+              </td>
+              <td>
+                <span class="status-chip" [ngClass]="estadoClase(tenant.estado_suscripcion)">
+                  {{ tenant.estado_suscripcion }}
+                </span>
+              </td>
+              <td>
+                <strong>{{ tenant.fecha_inicio | date:'dd/MM/yyyy' }}</strong>
+                <small>Hasta {{ tenant.fecha_vencimiento | date:'dd/MM/yyyy' }}</small>
+              </td>
+              <td>
+                <strong [class.days-danger]="diasRestantes(tenant.fecha_vencimiento) <= 7">
+                  {{ diasRestantes(tenant.fecha_vencimiento) > 0 ? diasRestantes(tenant.fecha_vencimiento) : 0 }}
+                </strong>
+                <small>restantes</small>
+              </td>
+              <td>
+                <button class="btn-manage" (click)="abrirGestion(tenant)">Gestionar</button>
+                <a class="btn-manage link" [routerLink]="['/suscripciones/pagos']" [queryParams]="{ tenant: tenant.id }">
+                  Pagos
+                </a>
+              </td>
+            </tr>
+            <tr *ngIf="tenants.length === 0">
+              <td colspan="7" class="empty">No existen tenants registrados.</td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+    </section>
+  </ng-container>
+</main>
+
+<div class="modal-overlay" *ngIf="mostrarCrear" (click)="cerrarCrear()">
+  <section class="modal-card" (click)="$event.stopPropagation()">
+    <div class="modal-head">
+      <div>
+        <span class="eyebrow">Nuevo entorno</span>
+        <h2>Crear tenant</h2>
+      </div>
+      <button class="close-btn" (click)="cerrarCrear()">×</button>
+    </div>
+
+    <div *ngIf="talleresSinTenant.length === 0" class="alert alert-info">
+      Todos los talleres ya tienen un tenant asociado.
+    </div>
+
+    <div class="form-group">
+      <label>Taller sin tenant</label>
+      <select [(ngModel)]="formTenant.id_taller" (ngModelChange)="seleccionarTaller($event)">
+        <option [ngValue]="0">Selecciona un taller</option>
+        <option *ngFor="let taller of talleresSinTenant" [ngValue]="taller.codigo">
+          {{ taller.nombre }} (#{{ taller.codigo }})
+        </option>
+      </select>
+    </div>
+
+    <div class="form-group">
+      <label>Nombre tenant</label>
+      <input type="text" [(ngModel)]="formTenant.nombre" />
+    </div>
+
+    <div class="form-grid">
+      <div class="form-group">
+        <label>Slug</label>
+        <input type="text" [(ngModel)]="formTenant.slug" />
+      </div>
+      <div class="form-group">
+        <label>Tipo dominio</label>
+        <select [(ngModel)]="formTenant.tipo_dominio">
+          <option value="SUBDOMINIO">Subdominio</option>
+          <option value="PERSONALIZADO">Personalizado</option>
+        </select>
+      </div>
+    </div>
+
+    <div class="form-group">
+      <label>Dominio</label>
+      <input type="text" [(ngModel)]="formTenant.dominio" />
+    </div>
+
+    <div class="modal-actions">
+      <button class="btn-secondary" (click)="cerrarCrear()">Cancelar</button>
+      <button class="btn-primary" (click)="crearTenant()" [disabled]="accionLoading || talleresSinTenant.length === 0">
+        {{ accionLoading ? 'Creando...' : 'Crear tenant' }}
+      </button>
+    </div>
+  </section>
+</div>
+
+<div class="modal-overlay" *ngIf="mostrarCuotas && tenantSeleccionado" (click)="cerrarGestion()">
+  <section class="modal-card large" (click)="$event.stopPropagation()">
+    <div class="modal-head">
+      <div>
+        <span class="eyebrow">Tenant #{{ tenantSeleccionado.id }}</span>
+        <h2>{{ tenantSeleccionado.nombre }}</h2>
+        <p>{{ tenantSeleccionado.dominio }}</p>
+      </div>
+      <button class="close-btn" (click)="cerrarGestion()">×</button>
+    </div>
+
+    <div *ngIf="loadingCuotas" class="state-box compact">Cargando cuotas...</div>
+
+    <div class="quota-grid" *ngIf="cuotasSeleccionadas && !loadingCuotas">
+      <article
+        *ngFor="let cuota of cuotaClaves"
+        [class.exceeded]="cuotasSeleccionadas.excedidos[cuota.key]">
+        <div>
+          <span>{{ cuota.label }}</span>
+          <strong>
+            {{ cuotasSeleccionadas.consumo[cuota.key] }}
+            / {{ cuotasSeleccionadas.limites[cuota.key] }} {{ cuota.unidad || '' }}
+          </strong>
+        </div>
+        <div class="progress-track">
+          <span [style.width.%]="porcentajeCuota(cuota.key)"></span>
+        </div>
+        <small>{{ porcentajeCuota(cuota.key) }}% consumido</small>
+      </article>
+    </div>
+
+    <div class="management-grid">
+      <div class="manage-block">
+        <h3>Renovar suscripcion</h3>
+        <div class="inline-control">
+          <input type="number" min="1" [(ngModel)]="renovarDias" />
+          <span>dias</span>
+          <button class="btn-primary" (click)="renovar()" [disabled]="accionLoading">
+            Renovar
+          </button>
+        </div>
+      </div>
+
+      <div class="manage-block">
+        <h3>Cambiar estado</h3>
+        <div class="inline-control">
+          <select [(ngModel)]="estadoSeleccionado">
+            <option *ngFor="let estado of estados" [value]="estado">{{ estado }}</option>
+          </select>
+          <button class="btn-secondary" (click)="cambiarEstado()" [disabled]="accionLoading">
+            Aplicar
+          </button>
+        </div>
+      </div>
+    </div>
+  </section>
+</div>

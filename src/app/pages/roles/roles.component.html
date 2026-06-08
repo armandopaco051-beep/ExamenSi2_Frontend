@@ -1,0 +1,63 @@
+<app-navbar></app-navbar>
+
+<div class="page-wrapper">
+  <div class="page-header">
+    <div>
+      <h1>🔑 Roles y Permisos</h1>
+      <p>Gestiona los permisos de cada rol del sistema</p>
+    </div>
+  </div>
+
+  <div class="roles-layout">
+
+    <!-- LISTA DE ROLES -->
+    <div class="roles-col">
+      <h3 class="col-title">Roles del sistema</h3>
+      <div
+        *ngFor="let r of roles"
+        class="rol-item"
+        [class.selected]="rolSeleccionado?.id === r.id"
+        (click)="seleccionarRol(r)">
+        <span class="rol-dot" [ngClass]="'dot-' + r.id"></span>
+        <div>
+          <div class="rol-nombre">{{ r.nombre }}</div>
+          <div class="rol-desc">{{ getDescRol(r.nombre) }}</div>
+        </div>
+        <span class="arrow">›</span>
+      </div>
+    </div>
+
+    <!-- PERMISOS DEL ROL -->
+    <div class="permisos-col">
+      <h3 class="col-title" *ngIf="rolSeleccionado">
+        Permisos — {{ rolSeleccionado.nombre }}
+      </h3>
+      <h3 class="col-title" *ngIf="!rolSeleccionado">
+        Selecciona un rol
+      </h3>
+
+      <div class="permisos-grid" *ngIf="rolSeleccionado">
+        <div
+          *ngFor="let p of permisos"
+          class="permiso-card"
+          [class.activo]="tienePermiso(p.id)"
+          (click)="togglePermiso(p)">
+          <div class="permiso-check">
+            <span *ngIf="tienePermiso(p.id)">✅</span>
+            <span *ngIf="!tienePermiso(p.id)">⬜</span>
+          </div>
+          <div class="permiso-info">
+            <div class="permiso-nombre">{{ p.nombre }}</div>
+            <div class="permiso-desc">{{ getDescPermiso(p.nombre.toString()) }}</div>
+          </div>
+        </div>
+      </div>
+
+      <div class="empty-state" *ngIf="!rolSeleccionado">
+        <span>👈</span>
+        <p>Selecciona un rol para gestionar sus permisos</p>
+      </div>
+    </div>
+
+  </div>
+</div>

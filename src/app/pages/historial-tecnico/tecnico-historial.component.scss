@@ -1,0 +1,149 @@
+.tecnico-page {
+  min-height: 100vh;
+  background: #07111f;
+  color: white;
+  padding: 96px 32px 36px;
+}
+
+/* Estados */
+.state-box {
+  background: #0b1b2e;
+  border: 1px dashed rgba(255, 255, 255, 0.14);
+  border-radius: 20px;
+  padding: 34px;
+  text-align: center;
+  color: #9fb8d3;
+}
+
+.state-box.error {
+  color: #ff6b6b;
+  border-color: rgba(255, 107, 107, 0.4);
+  background: rgba(255, 0, 0, 0.06);
+}
+
+/* Header */
+.hero-panel {
+  background: linear-gradient(135deg, #0b1b2e, #092238);
+  border: 1px solid rgba(255, 255, 255, 0.08);
+  border-radius: 24px;
+  padding: 26px;
+  margin-bottom: 22px;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 18px;
+}
+
+.eyebrow {
+  color: #ff6b35;
+  font-size: 13px;
+  font-weight: 800;
+}
+
+.hero-panel h1 {
+  margin: 8px 0 6px;
+  font-size: 32px;
+}
+
+.hero-panel p {
+  margin: 0;
+  color: #9fb8d3;
+}
+
+/* Botón */
+.btn-secondary {
+  background: #132b47;
+  color: white;
+  border: none;
+  border-radius: 15px;
+  padding: 13px 16px;
+  font-weight: 800;
+  cursor: pointer;
+  transition: 0.2s ease;
+}
+
+.btn-secondary:hover {
+  transform: translateY(-1px);
+  filter: brightness(1.08);
+}
+
+.small-btn {
+  max-width: 140px;
+}
+
+/* Historial */
+.history-card {
+  background: #0b1b2e;
+  border: 1px solid rgba(255, 255, 255, 0.08);
+  border-radius: 24px;
+  padding: 24px;
+  box-shadow: 0 18px 45px rgba(0, 0, 0, 0.18);
+}
+
+.history-list {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(360px, 1fr));
+  gap: 16px;
+}
+
+.history-item {
+  background: #081a2d;
+  border: 1px solid rgba(255, 255, 255, 0.05);
+  border-radius: 18px;
+  padding: 18px;
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+  gap: 14px;
+  min-height: 130px;
+}
+
+.history-item strong {
+  display: block;
+  color: white;
+  font-size: 17px;
+  line-height: 1.25;
+}
+
+.history-item small {
+  display: block;
+  color: #8fb3d9;
+  margin-top: 7px;
+  line-height: 1.4;
+}
+
+.estado-ok {
+  background: rgba(45, 212, 191, 0.12);
+  color: #2dd4bf;
+  padding: 8px 13px;
+  border-radius: 999px;
+  font-weight: 800;
+  font-size: 12px;
+  white-space: nowrap;
+}
+
+.empty-history {
+  background: #081a2d;
+  border-radius: 16px;
+  padding: 18px;
+  color: #9fb8d3;
+}
+
+@media (max-width: 700px) {
+  .tecnico-page {
+    padding: 86px 16px 24px;
+  }
+
+  .hero-panel {
+    flex-direction: column;
+    align-items: flex-start;
+  }
+
+  .history-list {
+    grid-template-columns: 1fr;
+  }
+
+  .history-item {
+    flex-direction: column;
+  }
+}

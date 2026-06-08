@@ -1,0 +1,354 @@
+<app-navbar></app-navbar>
+
+<div class="dashboard-v2">
+
+  <!-- BARRA SUPERIOR -->
+  <section class="top-status">
+    <div class="top-status__left">
+      <span class="live-dot"></span>
+      <strong>Todos los sistemas operativos</strong>
+      <span class="muted">· IA de diagnóstico activa</span>
+    </div>
+
+    <div class="top-status__filters">
+      <button class="filter-chip active">Hoy</button>
+      <button class="filter-chip">7 días</button>
+      <button class="filter-chip">30 días</button>
+    </div>
+  </section>
+
+  <section class="subscription-overview">
+    <div class="subscription-overview__head">
+      <div>
+        <span class="section-label">Suscripciones multitenant</span>
+        <h2>Estado de talleres y planes</h2>
+      </div>
+      <a routerLink="/suscripciones" class="subscription-link">Gestionar suscripciones</a>
+    </div>
+
+    <div *ngIf="suscripcionesError" class="subscription-error">{{ suscripcionesError }}</div>
+    <div *ngIf="suscripcionesLoading" class="subscription-loading">Cargando suscripciones...</div>
+
+    <ng-container *ngIf="!suscripcionesLoading && !suscripcionesError">
+      <div class="subscription-kpis">
+        <article>
+          <span>Total suscripciones</span>
+          <strong>{{ tenants.length }}</strong>
+        </article>
+        <article class="active">
+          <span>Activas</span>
+          <strong>{{ totalSuscripcionesActivas }}</strong>
+        </article>
+        <article class="suspended">
+          <span>Suspendidas</span>
+          <strong>{{ totalSuscripcionesSuspendidas }}</strong>
+        </article>
+        <article class="expired">
+          <span>Vencidas / canceladas</span>
+          <strong>{{ totalSuscripcionesVencidas }}</strong>
+        </article>
+      </div>
+
+      <div class="subscription-table-wrap">
+        <table class="subscription-table">
+          <thead>
+            <tr>
+              <th>Taller</th>
+              <th>Dominio</th>
+              <th>Estado</th>
+              <th>Vencimiento</th>
+              <th>Dias restantes</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr *ngFor="let tenant of tenants | slice:0:6">
+              <td>
+                <strong>{{ tenant.nombre }}</strong>
+                <small>Taller #{{ tenant.id_taller }}</small>
+              </td>
+              <td>{{ tenant.dominio }}</td>
+              <td>
+                <span class="subscription-status" [ngClass]="claseSuscripcion(tenant.estado_suscripcion)">
+                  {{ tenant.estado_suscripcion }}
+                </span>
+              </td>
+              <td>{{ tenant.fecha_vencimiento | date:'dd/MM/yyyy' }}</td>
+              <td>
+                <strong [class.subscription-days-danger]="diasSuscripcion(tenant.fecha_vencimiento) <= 7">
+                  {{ diasSuscripcion(tenant.fecha_vencimiento) }}
+                </strong>
+              </td>
+            </tr>
+            <tr *ngIf="tenants.length === 0">
+              <td colspan="5" class="center-cell">No existen suscripciones registradas.</td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+    </ng-container>
+  </section>
+
+  <!-- KPIs -->
+  <section class="kpi-grid">
+    <article class="kpi-card kpi-card--danger">
+      <div class="kpi-card__top">
+        <div class="kpi-icon">⚠️</div>
+        <span class="kpi-badge positive">+12%</span>
+      </div>
+      <h2>{{ stats.pendientes || 0 }}</h2>
+      <p>Incidentes hoy</p>
+    </article>
+
+    <article class="kpi-card kpi-card--warning">
+      <div class="kpi-card__top">
+        <div class="kpi-icon">⏱️</div>
+        <span class="kpi-badge negative">-18%</span>
+      </div>
+      <h2>{{ stats.en_proceso || 0 }}</h2>
+      <p>Tiempo medio respuesta</p>
+    </article>
+
+    <article class="kpi-card kpi-card--orange">
+      <div class="kpi-card__top">
+        <div class="kpi-icon">🔧</div>
+        <span class="kpi-badge positive">+70%</span>
+      </div>
+      <h2>{{ stats.tecnicos_disponibles || 0 }}/{{ stats.total_tecnicos || 0 }}</h2>
+      <p>Técnicos activos</p>
+    </article>
+
+    <article class="kpi-card kpi-card--success">
+      <div class="kpi-card__top">
+        <div class="kpi-icon">✅</div>
+        <span class="kpi-badge positive">+8%</span>
+      </div>
+      <h2>{{ stats.atendidos || 0 }}</h2>
+      <p>Atenciones completadas</p>
+    </article>
+  </section>
+
+  <!-- FILA 1 -->
+  <section class="grid-2-1">
+    <article class="panel-card mini-chart-card">
+      <div class="panel-head">
+        <div>
+          <h3>Tendencia semanal</h3>
+          <p>Total atenciones por día</p>
+        </div>
+      </div>
+
+      <div class="canvas-box small-chart">
+        <canvas id="g-tendencia"></canvas>
+      </div>
+    </article>
+
+    <article class="panel-card map-card">
+      <div class="panel-head">
+        <div>
+          <h3>Mapa de incidentes activos</h3>
+          <p>Zona metropolitana · tiempo real</p>
+        </div>
+        <span class="pill-red">{{ stats.pendientes || 0 }} activos</span>
+      </div>
+
+      <div class="fake-map">
+        <span class="map-point critical" style="top: 28%; left: 20%"></span>
+        <span class="map-point medium" style="top: 68%; left: 15%"></span>
+        <span class="map-point low" style="top: 30%; left: 45%"></span>
+        <span class="map-point critical" style="top: 58%; left: 35%"></span>
+        <span class="map-point critical" style="top: 42%; left: 55%"></span>
+        <span class="map-point low" style="top: 24%; left: 70%"></span>
+        <span class="map-point medium" style="top: 63%; left: 80%"></span>
+
+        <div class="map-legend">
+          <span><i class="critical"></i> Crítico</span>
+          <span><i class="medium"></i> Medio</span>
+          <span><i class="low"></i> Bajo</span>
+        </div>
+      </div>
+    </article>
+  </section>
+
+  <!-- FILA 2 -->
+  <section class="grid-1-2">
+    <article class="panel-card recent-activity">
+      <div class="panel-head">
+        <div>
+          <h3>Actividad reciente</h3>
+          <p>Eventos administrativos y operativos</p>
+        </div>
+      </div>
+
+      <div class="activity-list">
+         <div class="activity-item" *ngFor="let a of actividadReciente">
+      <span class="activity-dot" [ngClass]="getActividadClase(a)"></span>
+      <div>
+        <strong>{{ a.descripcion }}</strong>
+        <small>{{ a.usuario }} · {{ a.fecha | date:'dd/MM HH:mm' }}</small>
+      </div>
+    </div>
+
+       <div class="empty-state" *ngIf="actividadReciente.length === 0">
+          <p>Sin actividad reciente</p>
+       </div>
+      </div>
+    </article>
+
+    <article class="panel-card emergency-types">
+  <div class="panel-head">
+    <div>
+      <h3>Tipo de emergencia</h3>
+      <p>Distribución últimos 7 días</p>
+    </div>
+  </div>
+
+  <div class="donut-layout">
+    <div class="canvas-box donut-chart">
+      <canvas id="g-tipos"></canvas>
+    </div>
+
+    <div class="type-list">
+      <div class="type-row" *ngFor="let t of tipoEmergencia">
+        <span>{{ t.categoria }}</span>
+        <strong>{{ t.total }}</strong>
+      </div>
+
+      <div class="empty-state" *ngIf="tipoEmergencia.length === 0">
+        <p>Sin datos</p>
+      </div>
+    </div>
+  </div>
+</article>
+  </section>
+
+  <!-- ALERTA SOLICITUDES -->
+  <section class="sol-alerta premium" *ngIf="pendientesSol > 0">
+    <div class="sol-ico">🔔</div>
+    <div class="sol-txt">
+      <strong>{{ pendientesSol }} solicitudes de registro pendientes</strong>
+      <span>Nuevos talleres esperan aprobación del administrador</span>
+    </div>
+    <button class="btn-outline" (click)="scrollToSol()">Ver solicitudes</button>
+  </section>
+
+  <!-- STATS SECUNDARIOS -->
+  <section class="mini-stats-grid">
+    <div class="mini-stat">
+      <div class="mini-num orange">{{ stats.pendientes || 0 }}</div>
+      <div class="mini-label">Pendientes</div>
+    </div>
+    <div class="mini-stat">
+      <div class="mini-num blue">{{ stats.en_proceso || 0 }}</div>
+      <div class="mini-label">En proceso</div>
+    </div>
+    <div class="mini-stat">
+      <div class="mini-num green">{{ stats.atendidos || 0 }}</div>
+      <div class="mini-label">Atendidos</div>
+    </div>
+    <div class="mini-stat">
+      <div class="mini-num coral">{{ stats.total_talleres || 0 }}</div>
+      <div class="mini-label">Talleres</div>
+    </div>
+    <div class="mini-stat">
+      <div class="mini-num purple">{{ stats.tecnicos_disponibles || 0 }}</div>
+      <div class="mini-label">Técnicos</div>
+    </div>
+    <div class="mini-stat">
+      <div class="mini-num cyan">{{ stats.total_usuarios || 0 }}</div>
+      <div class="mini-label">Usuarios</div>
+    </div>
+  </section>
+
+  <!-- SOLICITUDES -->
+  <section class="panel-card" id="solicitudes-section">
+    <div class="panel-head">
+      <div>
+        <h3>Solicitudes pendientes de talleres</h3>
+        <p>Revisión y aprobación administrativa</p>
+      </div>
+    </div>
+
+    <div class="table-wrap" *ngIf="solicitudes.length > 0">
+      <table>
+        <thead>
+          <tr>
+            <th>CI</th>
+            <th>Nombre</th>
+            <th>Taller solicitado</th>
+            <th>Fecha</th>
+            <th>Estado</th>
+            <th>Acciones</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr *ngFor="let s of solicitudes">
+            <td class="td-mono">{{ s.codigo_usuario }}</td>
+            <td>{{ s.nombre }} {{ s.apellido }}</td>
+            <td>{{ getTallerNombreSolicitud(s) }}</td>
+            <td class="td-sm td-muted">{{ s.fecha_solicitud | date:'dd/MM/yy HH:mm' }}</td>
+            <td><span class="badge badge-yellow">Pendiente</span></td>
+            <td class="actions-inline">
+              <button class="btn-mini success" (click)="aceptarsolicitud(s)">✅ Aceptar</button>
+              <button class="btn-mini danger" (click)="verSolicitud(s)">✖ Rechazar</button>
+            </td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
+
+    <div class="empty-state" *ngIf= "!err && solicitudes.length === 0 && !loading">
+      <div class="empty-ico">✅</div>
+      <p>No hay solicitudes pendientes</p>
+    </div>
+  </section>
+
+  <!-- INCIDENTES -->
+  <section class="panel-card">
+    <div class="panel-head">
+      <div>
+        <h3>Últimos incidentes</h3>
+        <p>Actividad reciente del sistema</p>
+      </div>
+    </div>
+
+    <div class="table-wrap">
+      <table>
+        <thead>
+          <tr>
+            <th>#</th>
+            <th>Descripción</th>
+            <th>Categoría</th>
+            <th>Prioridad</th>
+            <th>Estado</th>
+            <th>Fecha</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr *ngFor="let i of ultimos">
+            <td class="td-mono">#{{ i.codigo }}</td>
+            <td class="td-desc">{{ i.descripcion }}</td>
+            <td>{{ cats[i.id_categoria] || 'Otros' }}</td>
+            <td>
+              <span class="badge" [ngClass]="getPrioridadClase(i.id_prioridad)">
+                {{ getPrioridadNombre(i.id_prioridad) }}
+              </span>
+            </td>
+            <td>
+              <span class="badge" [ngClass]="estadoBadge[i.id_estado]">
+                {{ estados[i.id_estado] }}
+              </span>
+            </td>
+            <td class="td-sm td-muted">{{ i.fecha_reporte | date:'dd/MM HH:mm' }}</td>
+          </tr>
+
+          <tr *ngIf="ultimos.length === 0">
+            <td colspan="6" class="td-sm td-muted center-cell">
+              Sin incidentes registrados
+            </td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
+  </section>
+
+</div>

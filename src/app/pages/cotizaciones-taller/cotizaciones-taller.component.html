@@ -1,0 +1,201 @@
+<app-navbar></app-navbar>
+
+<main class="quotes-page">
+  <header class="page-header">
+    <div>
+      <span class="eyebrow">Solicitudes competitivas</span>
+      <h1>Cotizaciones</h1>
+      <p>Responde invitaciones enviadas exclusivamente a tu taller.</p>
+    </div>
+
+    <button class="btn-secondary" (click)="cargarSolicitudes()" [disabled]="loading">
+      Actualizar
+    </button>
+  </header>
+
+  <div *ngIf="error" class="alert alert-error">{{ error }}</div>
+  <div *ngIf="mensajeExito" class="alert alert-success">{{ mensajeExito }}</div>
+  <div *ngIf="loading" class="state-box">Cargando invitaciones de cotizacion...</div>
+
+  <ng-container *ngIf="!loading">
+    <section class="summary-grid">
+      <article>
+        <span>Total invitaciones</span>
+        <strong>{{ solicitudes.length }}</strong>
+      </article>
+      <article class="pending">
+        <span>Pendientes de respuesta</span>
+        <strong>{{ totalPendientes }}</strong>
+      </article>
+      <article class="sent">
+        <span>Cotizaciones enviadas</span>
+        <strong>{{ totalEnviadas }}</strong>
+      </article>
+      <article class="accepted">
+        <span>Aceptadas por clientes</span>
+        <strong>{{ totalAceptadas }}</strong>
+      </article>
+    </section>
+
+    <section class="filters">
+      <button
+        *ngFor="let estado of estados"
+        [class.active]="filtroEstado === estado"
+        (click)="filtroEstado = estado">
+        {{ estado === 'TODAS' ? 'Todas' : estadoTexto(estado) }}
+      </button>
+    </section>
+
+    <section class="quotes-list" *ngIf="solicitudesFiltradas.length > 0; else sinCotizaciones">
+      <article class="quote-card" *ngFor="let item of solicitudesFiltradas">
+        <div class="quote-main">
+          <div class="quote-title">
+            <div>
+              <span class="eyebrow">Incidente #{{ getIdIncidente(item) || 'N/D' }}</span>
+              <h2>{{ getCategoria(item) }}</h2>
+            </div>
+
+            <span class="status-chip" [ngClass]="estadoClase(getEstado(item))">
+              {{ estadoTexto(getEstado(item)) }}
+            </span>
+          </div>
+
+          <p class="description">{{ getDescripcion(item) }}</p>
+
+          <div class="info-grid">
+            <div>
+              <span>Ubicacion</span>
+              <strong>{{ getDireccion(item) }}</strong>
+              <small>{{ getLatitud(item) }}, {{ getLongitud(item) }}</small>
+            </div>
+            <div>
+              <span>Distancia</span>
+              <strong>{{ item.distancia_km | number:'1.1-2' }} km</strong>
+              <small>Desde tu taller</small>
+            </div>
+            <div>
+              <span>Fecha limite</span>
+              <strong>{{ getFechaLimite(item) | date:'dd/MM/yyyy HH:mm' }}</strong>
+              <small [class.expired-text]="estaVencida(item)">
+                {{ estaVencida(item) ? 'Solicitud vencida' : 'Disponible para responder' }}
+              </small>
+            </div>
+            <div *ngIf="getEstado(item) !== 'INVITADA'">
+              <span>Monto enviado</span>
+              <strong>{{ item.monto_estimado ? ('Bs ' + (item.monto_estimado | number:'1.2-2')) : 'Sin monto' }}</strong>
+              <small *ngIf="item.tiempo_llegada_minutos">{{ item.tiempo_llegada_minutos }} min de llegada</small>
+            </div>
+          </div>
+        </div>
+
+        <div class="quote-actions">
+          <button
+            class="btn-location"
+            (click)="verUbicacion(item)"
+            [disabled]="!getLatitud(item) || !getLongitud(item)">
+            Ver ubicacion
+          </button>
+
+          <button
+            class="btn-primary"
+            (click)="abrirResponder(item)"
+            [disabled]="!puedeResponder(item)">
+            {{ getEstado(item) === 'AJUSTE_SOLICITADO' ? 'Enviar ajuste' : 'Cotizar' }}
+          </button>
+
+          <button
+            class="btn-reject"
+            (click)="abrirRechazar(item)"
+            [disabled]="!puedeResponder(item)">
+            Rechazar
+          </button>
+        </div>
+      </article>
+    </section>
+
+    <ng-template #sinCotizaciones>
+      <section class="empty-state">
+        <h2>No hay cotizaciones para este filtro</h2>
+        <p>Las nuevas invitaciones del taller apareceran aqui.</p>
+      </section>
+    </ng-template>
+  </ng-container>
+</main>
+
+<div class="modal-overlay" *ngIf="mostrarResponder && solicitudSeleccionada" (click)="cerrarResponder()">
+  <section class="modal-card" (click)="$event.stopPropagation()">
+    <div class="modal-head">
+      <div>
+        <span class="eyebrow">Incidente #{{ getIdIncidente(solicitudSeleccionada) }}</span>
+        <h2>{{ getEstado(solicitudSeleccionada) === 'AJUSTE_SOLICITADO' ? 'Ajustar cotizacion' : 'Enviar cotizacion' }}</h2>
+      </div>
+      <button class="close-btn" (click)="cerrarResponder()">×</button>
+    </div>
+
+    <div class="form-grid">
+      <div class="form-group">
+        <label>Monto estimado (Bs)</label>
+        <input type="number" min="0.01" step="0.01" [(ngModel)]="respuesta.monto_estimado" />
+      </div>
+      <div class="form-group">
+        <label>Tiempo de llegada (min)</label>
+        <input type="number" min="1" step="1" [(ngModel)]="respuesta.tiempo_llegada_minutos" />
+      </div>
+    </div>
+
+    <div class="form-group">
+      <label>Tiempo estimado de reparacion (min)</label>
+      <input type="number" min="1" step="1" [(ngModel)]="respuesta.tiempo_reparacion_minutos" />
+    </div>
+
+    <div class="form-group">
+      <label>Descripcion del servicio</label>
+      <textarea
+        rows="4"
+        [(ngModel)]="respuesta.descripcion_servicio"
+        placeholder="Ej: Diagnostico y reparacion del sistema electrico"></textarea>
+    </div>
+
+    <div class="form-group">
+      <label>Observacion</label>
+      <textarea
+        rows="3"
+        [(ngModel)]="respuesta.observacion"
+        placeholder="Ej: Incluye desplazamiento y revision"></textarea>
+    </div>
+
+    <div class="modal-actions">
+      <button class="btn-secondary" (click)="cerrarResponder()">Cancelar</button>
+      <button class="btn-primary" (click)="enviarCotizacion()" [disabled]="accionLoading">
+        {{ accionLoading ? 'Enviando...' : 'Enviar cotizacion' }}
+      </button>
+    </div>
+  </section>
+</div>
+
+<div class="modal-overlay" *ngIf="mostrarRechazar && solicitudSeleccionada" (click)="cerrarRechazar()">
+  <section class="modal-card small" (click)="$event.stopPropagation()">
+    <div class="modal-head">
+      <div>
+        <span class="eyebrow">Incidente #{{ getIdIncidente(solicitudSeleccionada) }}</span>
+        <h2>Rechazar invitacion</h2>
+      </div>
+      <button class="close-btn" (click)="cerrarRechazar()">×</button>
+    </div>
+
+    <div class="form-group">
+      <label>Motivo del rechazo</label>
+      <textarea
+        rows="4"
+        [(ngModel)]="observacionRechazo"
+        placeholder="Ej: No existen tecnicos disponibles"></textarea>
+    </div>
+
+    <div class="modal-actions">
+      <button class="btn-secondary" (click)="cerrarRechazar()">Cancelar</button>
+      <button class="btn-reject solid" (click)="rechazarCotizacion()" [disabled]="accionLoading">
+        {{ accionLoading ? 'Rechazando...' : 'Confirmar rechazo' }}
+      </button>
+    </div>
+  </section>
+</div>

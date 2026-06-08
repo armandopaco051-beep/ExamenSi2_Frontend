@@ -1,0 +1,51 @@
+<app-navbar></app-navbar>
+
+<div class="tecnico-page">
+
+  <div *ngIf="loading" class="state-box">
+    Cargando historial del técnico...
+  </div>
+
+  <div *ngIf="error && !loading" class="state-box error">
+    {{ error }}
+  </div>
+
+  <ng-container *ngIf="!loading && !error">
+
+    <section class="hero-panel">
+      <div>
+        <span class="eyebrow">Registro operativo</span>
+        <h1>Historial de incidentes</h1>
+        <p>Todos los servicios asignados al técnico, incluyendo el actual.</p>
+      </div>
+
+      <button class="btn-secondary small-btn" (click)="cargarHistorial()">
+        Actualizar
+      </button>
+    </section>
+
+    <section class="history-card">
+
+      <div *ngIf="historial.length === 0" class="empty-history">
+        No hay incidentes asignados a este técnico todavía.
+      </div>
+
+      <div class="history-list" *ngIf="historial.length > 0">
+        <div class="history-item" *ngFor="let h of historial">
+          <div>
+            <strong>#EV-{{ h.id_incidente }} · {{ h.categoria }}</strong>
+            <small>{{ h.cliente }} · {{ h.fecha | date:'dd/MM/yyyy HH:mm' }}</small>
+            <small>{{ h.descripcion }}</small>
+          </div>
+
+          <span class="estado-ok">
+            {{ h.estado }}
+          </span>
+        </div>
+      </div>
+
+    </section>
+
+  </ng-container>
+
+</div>

@@ -1,0 +1,131 @@
+<app-navbar></app-navbar>
+
+<div class="page-wrapper">
+  <div class="page-header">
+    <div>
+      <h1>🔧 Técnicos de mi taller</h1>
+      <p>Administra únicamente los técnicos registrados en tu taller</p>
+    </div>
+
+    <button class="btn-primary" (click)="abrirModal()">
+      + Nuevo Técnico
+    </button>
+  </div>
+
+  <div *ngIf="error" class="alert alert-error">{{ error }}</div>
+
+  <div class="card table-card">
+    <table>
+      <thead>
+        <tr>
+          <th>CI</th>
+          <th>Nombre</th>
+          <th>Acceso</th>
+          <th>Teléfono</th>
+          <th>Disponibilidad</th>
+          <th>Ubicación</th>
+          <th>Acciones</th>
+        </tr>
+      </thead>
+
+      <tbody>
+        <tr *ngFor="let t of tecnicos">
+          <td class="mono">{{ t.codigo }}</td>
+          <td>{{ t.nombre }}</td>
+          <td class="mono soft">{{ t.email }}</td>
+          <td>{{ t.telefono }}</td>
+          <td>
+            <span
+              class="badge"
+              [class.active]="t.disponibilidad"
+              [class.inactive]="!t.disponibilidad"
+              (click)="toggleDisponibilidad(t)">
+              {{ t.disponibilidad ? 'Disponible' : 'Ocupado' }}
+            </span>
+          </td>
+          <td class="coords">
+            {{ t.latitud }}, {{ t.longitud }}
+          </td>
+          <td class="actions">
+            <button class="btn-secondary" (click)="abrirModal(t)">✏️ Editar</button>
+            <button class="btn-danger" (click)="eliminar(t.codigo)">🗑️ Eliminar</button>
+          </td>
+        </tr>
+
+        <tr *ngIf="tecnicos.length === 0">
+          <td colspan="7" class="empty">
+            No hay técnicos registrados en tu taller
+          </td>
+        </tr>
+      </tbody>
+    </table>
+  </div>
+</div>
+
+<div class="modal-overlay" *ngIf="mostrarModal" (click)="cerrarModal()">
+  <div class="modal card" (click)="$event.stopPropagation()">
+    <div class="modal-header">
+      <h3>{{ editando ? '✏️ Editar Técnico' : '🔧 Nuevo Técnico' }}</h3>
+      <button class="close-btn" (click)="cerrarModal()">✕</button>
+    </div>
+
+    <div *ngIf="error" class="alert alert-error">{{ error }}</div>
+
+    <div class="form-group">
+      <label>CI</label>
+      <input
+        type="text"
+        [(ngModel)]="form.codigo"
+        [disabled]="!!editando"
+        placeholder="Ej: 12345678"
+      />
+      <small class="help-text" *ngIf="!editando">
+        El CI será el acceso inicial y también la contraseña inicial del técnico.
+      </small>
+    </div>
+
+    <div class="form-group">
+      <label>Nombre completo</label>
+      <input
+        type="text"
+        [(ngModel)]="form.nombre"
+        placeholder="Ej: Juan Pérez"
+      />
+    </div>
+
+    <div class="form-group">
+      <label>Teléfono</label>
+      <input
+        type="text"
+        [(ngModel)]="form.telefono"
+        placeholder="+591 7XXXXXXX"
+      />
+    </div>
+
+    <div class="form-grid">
+      <div class="form-group">
+        <label>Latitud</label>
+        <input type="number" [(ngModel)]="form.latitud" placeholder="-17.7833" />
+      </div>
+
+      <div class="form-group">
+        <label>Longitud</label>
+        <input type="number" [(ngModel)]="form.longitud" placeholder="-63.1821" />
+      </div>
+    </div>
+
+    <div class="form-group checkbox-row">
+      <label class="check-inline">
+        <input type="checkbox" [(ngModel)]="form.disponibilidad" />
+        <span>Técnico disponible</span>
+      </label>
+    </div>
+
+    <div class="modal-actions">
+      <button class="btn-secondary" (click)="cerrarModal()">Cancelar</button>
+      <button class="btn-primary" (click)="guardar()" [disabled]="loading">
+        {{ loading ? 'Guardando...' : 'Guardar técnico' }}
+      </button>
+    </div>
+  </div>
+</div>

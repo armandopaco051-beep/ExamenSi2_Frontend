@@ -1,0 +1,439 @@
+<app-navbar></app-navbar>
+
+<div class="incidentes-page">
+
+  <div class="page-header">
+    <div>
+      <span class="eyebrow">Solicitudes recibidas</span>
+      <h1>Incidentes del taller</h1>
+      <p>Emergencias asignadas automáticamente por cercanía al taller.</p>
+    </div>
+
+    <button class="btn-refresh" (click)="cargarIncidentes()">
+      Actualizar
+    </button>
+  </div>
+
+  <div *ngIf="loading" class="state-box">
+    Cargando incidentes asignados...
+  </div>
+
+  <div *ngIf="error && !loading" class="state-box error">
+    {{ error }}
+  </div>
+
+  <ng-container *ngIf="!loading && !error">
+
+    <div *ngIf="incidentes.length === 0" class="empty-box">
+      <div class="empty-icon">🚨</div>
+      <h3>No hay incidentes asignados</h3>
+      <p>Cuando un cliente reporte una emergencia cercana, aparecerá aquí.</p>
+    </div>
+
+    <div class="incidentes-grid" *ngIf="incidentes.length > 0">
+
+      <div class="incidente-card" *ngFor="let item of incidentes">
+
+        <div class="card-top">
+          <div>
+            <span class="code">#EV-{{ item.id_incidente }}</span>
+            <h3>{{ getCategoria(item) }}</h3>
+          </div>
+
+          <span class="estado">
+            {{ getEstadoAsignacion(item) }}
+          </span>
+        </div>
+
+        <p class="descripcion">
+          {{ getDescripcion(item) }}
+        </p>
+
+        <div class="info-grid">
+          <div>
+            <span>Prioridad</span>
+            <strong [ngClass]="getClasePrioridad(item)">
+              {{ getPrioridad(item) }}
+            </strong>
+          </div>
+
+          <div>
+            <span>Fecha</span>
+            <strong>{{ getFecha(item) | date:'dd/MM/yyyy HH:mm' }}</strong>
+          </div>
+
+          <div>
+            <span>Latitud</span>
+            <strong>{{ getLatitud(item) }}</strong>
+          </div>
+
+          <div>
+            <span>Longitud</span>
+            <strong>{{ getLongitud(item) }}</strong>
+          </div>
+        </div>
+
+        <div class="actions">
+          <button class="btn-secondary" (click)="verDetalle(item)">
+            Ver detalle
+          </button>
+
+          <button
+            class="btn-primary"
+            *ngIf="item.id_estado_asignacion === 1"
+            (click)="aceptarSolicitud(item)">
+            Aceptar
+          </button>
+
+          <button
+            class="btn-danger"
+            *ngIf="item.id_estado_asignacion === 1"
+            (click)="rechazarSolicitud(item)">
+            Rechazar
+          </button>
+
+          <button
+            class="btn-secondary"
+            *ngIf="item.id_estado_asignacion === 2"
+            (click)="abrirAsignarTecnico(item)">
+            Asignar técnico
+          </button>
+
+          <span
+            class="finalizado-label"
+            *ngIf="item.id_estado_asignacion === 6">
+            Servicio finalizado
+          </span>
+        </div>
+
+      </div>
+
+    </div>
+
+  </ng-container>
+</div>
+
+
+<!-- MODAL DETALLE DEL INCIDENTE -->
+<div class="modal-backdrop" *ngIf="mostrarDetalle && incidenteSeleccionado">
+  <div class="modal-card modal-detalle">
+
+    <div class="modal-head">
+      <div>
+        <span class="eyebrow">Detalle del incidente</span>
+        <h2>#EV-{{ incidenteSeleccionado.id_incidente }}</h2>
+      </div>
+
+      <button type="button" (click)="cerrarDetalle()">×</button>
+    </div>
+
+    <div class="detalle-grid">
+      <div>
+        <span>Categoría</span>
+        <strong>{{ getCategoria(incidenteSeleccionado) }}</strong>
+      </div>
+
+      <div>
+        <span>Prioridad</span>
+        <strong [ngClass]="getClasePrioridad(incidenteSeleccionado)">
+          {{ getPrioridad(incidenteSeleccionado) }}
+        </strong>
+      </div>
+
+      <div>
+        <span>Estado</span>
+        <strong>{{ getEstadoAsignacion(incidenteSeleccionado) }}</strong>
+      </div>
+
+      <div>
+        <span>Fecha</span>
+        <strong>{{ getFecha(incidenteSeleccionado) | date:'dd/MM/yyyy HH:mm' }}</strong>
+      </div>
+    </div>
+
+    <div class="detalle-section">
+      <h3>Descripción del problema</h3>
+      <p>{{ getDescripcion(incidenteSeleccionado) }}</p>
+    </div>
+
+    <div class="detalle-section">
+      <h3>Datos del solicitante</h3>
+
+      <div class="detalle-grid">
+        <div>
+          <span>Nombre</span>
+          <strong>{{ getNombreSolicitante(incidenteSeleccionado) }}</strong>
+        </div>
+
+        <div>
+          <span>Teléfono</span>
+          <strong>{{ getTelefonoSolicitante(incidenteSeleccionado) }}</strong>
+        </div>
+
+        <div>
+          <span>Correo</span>
+          <strong>{{ getCorreoSolicitante(incidenteSeleccionado) }}</strong>
+        </div>
+      </div>
+    </div>
+
+    <div class="detalle-section">
+      <h3>Ubicación del cliente</h3>
+
+      <div class="detalle-grid">
+        <div>
+          <span>Latitud</span>
+          <strong>{{ getLatitud(incidenteSeleccionado) }}</strong>
+        </div>
+
+        <div>
+          <span>Longitud</span>
+          <strong>{{ getLongitud(incidenteSeleccionado) }}</strong>
+        </div>
+      </div>
+
+      <div class="modal-actions">
+        <button class="btn-secondary" (click)="verUbicacion(incidenteSeleccionado)">
+          Ver ubicación
+        </button>
+      </div>
+    </div>
+
+    <!-- EVIDENCIAS DEL CLIENTE -->
+    <div class="detalle-section">
+      <h3>Evidencias del cliente</h3>
+
+      <div *ngIf="loadingEvidencias" class="evidencia-state">
+        Cargando evidencias...
+      </div>
+
+      <div *ngIf="errorEvidencia && !loadingEvidencias" class="evidencia-state error">
+        {{ errorEvidencia }}
+      </div>
+
+      <div
+        *ngIf="!loadingEvidencias && !errorEvidencia && evidencias.length === 0"
+        class="evidencia-state">
+        No hay evidencias registradas para este incidente.
+      </div>
+
+      <div class="evidencias-grid" *ngIf="evidencias.length > 0">
+
+        <div class="evidencia-card" *ngFor="let ev of evidencias">
+
+          <!-- Imagen -->
+          <ng-container *ngIf="getImagenesEvidencia(ev).length > 0">
+            <span class="evidencia-label">Fotografia enviada</span>
+
+            <img
+              *ngFor="let imagen of getImagenesEvidencia(ev)"
+              class="evidencia-img"
+              [src]="imagen"
+              alt="Evidencia del incidente">
+
+            <p *ngIf="getTextoEvidencia(ev)">
+              <strong>Análisis / descripción:</strong>
+              {{ getTextoEvidencia(ev) }}
+            </p>
+          </ng-container>
+
+          <!-- Audio -->
+          <ng-container *ngIf="esAudio(ev)">
+            <span class="evidencia-label">Audio enviado</span>
+
+            <audio
+              class="evidencia-audio"
+              controls
+              [src]="getUrlArchivo(ev)">
+            </audio>
+
+            <p *ngIf="getTextoEvidencia(ev)">
+              <strong>Transcripción:</strong>
+              {{ getTextoEvidencia(ev) }}
+            </p>
+          </ng-container>
+
+          <!-- Video -->
+          <ng-container *ngIf="esVideo(ev)">
+            <span class="evidencia-label">Video enviado</span>
+
+            <video
+              class="evidencia-video"
+              controls
+              [src]="getUrlArchivo(ev)">
+            </video>
+
+            <p *ngIf="getTextoEvidencia(ev)">
+              <strong>Descripción:</strong>
+              {{ getTextoEvidencia(ev) }}
+            </p>
+          </ng-container>
+
+          <!-- Texto -->
+          <ng-container *ngIf="esTexto(ev)">
+            <span class="evidencia-label">Texto enviado</span>
+
+            <p>
+              <strong>Descripción:</strong>
+              {{ getTextoEvidencia(ev) || 'Sin descripcion.' }}
+            </p>
+          </ng-container>
+
+          <!-- Archivo -->
+          <ng-container *ngIf="esArchivo(ev)">
+            <span class="evidencia-label">Archivo enviado</span>
+
+            <a
+              class="evidencia-file"
+              [href]="getUrlArchivo(ev)"
+              target="_blank"
+              rel="noopener">
+              {{ getNombreArchivo(ev) }}
+            </a>
+
+            <p *ngIf="getTextoEvidencia(ev)">
+              <strong>Descripción:</strong>
+              {{ getTextoEvidencia(ev) }}
+            </p>
+          </ng-container>
+
+        </div>
+
+      </div>
+    </div>
+
+    <div class="detalle-section">
+      <h3>Historial del chat</h3>
+
+      <div *ngIf="loadingChat" class="evidencia-state">
+        Cargando mensajes del chat...
+      </div>
+
+      <div *ngIf="errorChat && !loadingChat" class="evidencia-state error">
+        {{ errorChat }}
+      </div>
+
+      <div
+        *ngIf="!loadingChat && !errorChat && chatMensajes.length === 0"
+        class="evidencia-state">
+        No hay mensajes registrados para este incidente.
+      </div>
+
+      <div class="chat-readonly" *ngIf="chatMensajes.length > 0">
+        <div
+          class="chat-line"
+          *ngFor="let msg of chatMensajes"
+          [class.tecnico]="msg.emisor_tipo === 'tecnico'">
+          <div class="chat-meta">
+            <strong>{{ msg.emisor_tipo }}</strong>
+            <span>{{ msg.fecha_hora | date:'dd/MM/yyyy HH:mm' }}</span>
+          </div>
+          <p>{{ msg.mensaje }}</p>
+        </div>
+      </div>
+    </div>
+
+    <div class="detalle-section">
+      <h3>Pagos y comprobante</h3>
+
+      <div *ngIf="loadingPagos" class="evidencia-state">
+        Cargando resumen del cobro...
+      </div>
+
+      <div *ngIf="errorPagos && !loadingPagos" class="evidencia-state error">
+        {{ errorPagos }}
+      </div>
+
+      <div *ngIf="resumenCobro && !loadingPagos" class="pago-readonly">
+        <div class="pago-summary">
+          <div>
+            <span>Estado</span>
+            <strong>{{ resumenCobro.estado_pago || 'Sin estado' }}</strong>
+          </div>
+          <div>
+            <span>Subtotal</span>
+            <strong>Bs {{ resumenCobro.subtotal | number:'1.2-2' }}</strong>
+          </div>
+          <div>
+            <span>Descuento</span>
+            <strong>Bs {{ resumenCobro.descuento | number:'1.2-2' }}</strong>
+          </div>
+          <div>
+            <span>Total</span>
+            <strong>Bs {{ resumenCobro.total | number:'1.2-2' }}</strong>
+          </div>
+        </div>
+
+        <div class="pago-lines" *ngIf="resumenCobro.conceptos?.length">
+          <div class="pago-line" *ngFor="let item of resumenCobro.conceptos">
+            <div>
+              <strong>{{ item.descripcion }}</strong>
+              <span>{{ item.cantidad }} x Bs {{ item.precio_unitario | number:'1.2-2' }}</span>
+              <small *ngIf="item.observacion">{{ item.observacion }}</small>
+            </div>
+            <strong>Bs {{ item.subtotal | number:'1.2-2' }}</strong>
+          </div>
+        </div>
+
+        <div class="comprobante-box" *ngIf="comprobantePago">
+          <strong>{{ comprobantePago.numero_comprobante || 'Comprobante generado' }}</strong>
+          <span>{{ comprobantePago.fecha_emision | date:'dd/MM/yyyy HH:mm' }}</span>
+          <span>Total: Bs {{ comprobantePago.total | number:'1.2-2' }}</span>
+        </div>
+      </div>
+    </div>
+
+    <div class="modal-actions">
+      <button class="btn-secondary" (click)="cerrarDetalle()">
+        Cerrar detalle
+      </button>
+    </div>
+
+  </div>
+</div>
+
+
+<!-- MODAL ASIGNAR TÉCNICO -->
+<div class="modal-backdrop" *ngIf="mostrarAsignarTecnico && asignacionSeleccionada">
+  <div class="modal-card">
+
+    <div class="modal-head">
+      <div>
+        <span class="eyebrow">Asignación técnica</span>
+        <h2>Asignar técnico</h2>
+      </div>
+
+      <button type="button" (click)="cerrarAsignarTecnico()">×</button>
+    </div>
+
+    <p>
+      Selecciona un técnico disponible para atender el incidente
+      <strong>#EV-{{ asignacionSeleccionada.id_incidente }}</strong>.
+    </p>
+
+    <div class="form-group">
+      <label>Técnico disponible</label>
+
+      <select [(ngModel)]="tecnicoSeleccionado">
+        <option value="">Seleccione un técnico</option>
+
+        <option
+          *ngFor="let tecnico of tecnicosDisponibles"
+          [value]="tecnico.codigo">
+          {{ tecnico.nombre }} - {{ tecnico.codigo }}
+        </option>
+      </select>
+    </div>
+
+    <div class="modal-actions">
+      <button class="btn-secondary" (click)="cerrarAsignarTecnico()">
+        Cancelar
+      </button>
+
+      <button class="btn-primary" (click)="confirmarAsignacionTecnico()">
+        Confirmar asignación
+      </button>
+    </div>
+
+  </div>
+</div>

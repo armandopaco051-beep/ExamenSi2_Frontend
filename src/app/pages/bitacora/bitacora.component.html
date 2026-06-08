@@ -1,0 +1,88 @@
+<app-navbar></app-navbar>
+
+<div class="page-wrapper">
+  <div class="page-header">
+    <div>
+      <h1>📋 Bitácora del Sistema</h1>
+      <p *ngIf="!esAdminTaller()">Registro completo de todas las acciones realizadas</p>
+      <p *ngIf="esAdminTaller()">Registro de acciones de tu taller y sus técnicos</p>
+    </div>
+  </div>
+
+  <div class="filtros card">
+    <div class="form-group" style="flex:1">
+      <label>Módulo</label>
+      <select [(ngModel)]="filtroModulo" (change)="cargar()">
+        <option value="">Todos los módulos</option>
+        <option *ngFor="let m of modulos" [value]="m">{{ m }}</option>
+      </select>
+    </div>
+
+    <div class="form-group" style="flex:1" *ngIf="!esAdminTaller()">
+      <label>CI del usuario</label>
+      <input type="text" [(ngModel)]="filtroUsuario"
+        placeholder="Ej: 12345678" (keyup.enter)="cargar()" />
+    </div>
+
+    <div class="filtros-btns">
+      <button class="btn-primary" style="width:auto" (click)="cargar()">
+        🔍 Filtrar
+      </button>
+      <button class="btn-secondary" (click)="limpiarFiltros()">
+        Limpiar
+      </button>
+    </div>
+  </div>
+
+  <div class="card">
+    <div *ngIf="loading" class="empty">Cargando registros...</div>
+    <div *ngIf="error && !loading" class="empty">{{ error }}</div>
+
+    <table *ngIf="!loading && !error">
+      <thead>
+        <tr>
+          <th>#</th>
+          <th>Fecha</th>
+          <th>Actor</th>
+          <th>Acción</th>
+          <th>Módulo</th>
+          <th>Descripción</th>
+          <th>IP</th>
+        </tr>
+      </thead>
+      <tbody>
+        <tr *ngFor="let r of registros">
+          <td style="font-size:12px;color:var(--text-muted)">{{ r.id }}</td>
+          <td style="font-size:12px;white-space:nowrap">
+            {{ r.fecha | date:'dd/MM/yy HH:mm' }}
+          </td>
+          <td>
+            <div style="font-size:13px;font-weight:600">{{ r.nombre_usuario || '-' }}</div>
+            <div style="font-size:11px;color:var(--text-muted);font-family:monospace">
+              {{ r.codigo_usuario || r.codigo_tecnico || '-' }}
+            </div>
+          </td>
+          <td>
+            <span class="accion-badge" [ngClass]="getColorAccion(r.accion)">
+              {{ r.accion }}
+            </span>
+          </td>
+          <td>
+            <span class="modulo-badge">{{ r.modulo }}</span>
+          </td>
+          <td style="font-size:13px;max-width:250px;
+            white-space:nowrap;overflow:hidden;text-overflow:ellipsis">
+            {{ r.descripcion }}
+          </td>
+          <td style="font-size:12px;font-family:monospace;color:var(--text-muted)">
+            {{ r.ip_address }}
+          </td>
+        </tr>
+
+        <tr *ngIf="registros.length === 0 && !loading">
+          <td colspan="7" class="empty">No hay registros</td>
+        </tr>
+      </tbody>
+    </table>
+  </div>
+</div>

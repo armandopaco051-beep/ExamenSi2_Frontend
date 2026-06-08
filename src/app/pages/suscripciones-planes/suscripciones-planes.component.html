@@ -1,0 +1,52 @@
+<app-navbar></app-navbar>
+
+<main class="plans-page">
+  <section class="payment-hero">
+    <div class="hero-copy">
+      <span class="eyebrow">Portal de pagos</span>
+      <h1>Suscripcion del taller</h1>
+      <p>Selecciona un plan y completa el pago seguro mediante Stripe Checkout.</p>
+
+      <article class="current-plan" *ngIf="miPlan">
+        <span>Plan actual</span>
+        <strong>{{ miPlan.plan?.nombre || 'Sin plan asignado' }}</strong>
+        <small>{{ miPlan.estado_suscripcion }} · vence {{ miPlan.fecha_vencimiento | date:'dd/MM/yyyy' }}</small>
+        <button class="btn-secondary" (click)="pagarPlanActual()" [disabled]="accionLoading">
+          Pagar suscripcion actual
+        </button>
+      </article>
+    </div>
+
+    <div class="checkout-panel">
+      <div class="panel-top">Pago seguro via Stripe</div>
+
+      <div *ngIf="loading" class="state-box">Cargando planes...</div>
+      <div *ngIf="error && !loading" class="state-box error">{{ error }}</div>
+
+      <div class="plans-grid" *ngIf="!loading && !error">
+        <article class="plan-card" *ngFor="let plan of planes" [class.active]="esPlanActual(plan)">
+          <div class="plan-head">
+            <div>
+              <span>{{ esPlanActual(plan) ? 'Plan actual' : 'Plan disponible' }}</span>
+              <h2>{{ plan.nombre }}</h2>
+            </div>
+            <strong>{{ precio(plan) }}</strong>
+          </div>
+
+          <p>{{ plan.descripcion || (plan.duracion_dias + ' dias de servicio para tu taller.') }}</p>
+
+          <ul>
+            <li *ngFor="let item of caracteristicas(plan)">{{ item }}</li>
+          </ul>
+
+          <button
+            class="btn-primary"
+            (click)="seleccionarPlan(plan)"
+            [disabled]="accionLoading && planProcesando === plan.id">
+            {{ accionLoading && planProcesando === plan.id ? 'Abriendo Stripe...' : 'Seleccionar y pagar' }}
+          </button>
+        </article>
+      </div>
+    </div>
+  </section>
+</main>

@@ -1,0 +1,110 @@
+<app-navbar></app-navbar>
+
+<div class="chat-page">
+  <section class="chat-head">
+    <div>
+      <span class="eyebrow">Comunicacion directa</span>
+      <h1>Chat con el cliente</h1>
+      <p>Conversa con el cliente del servicio actual.</p>
+    </div>
+
+    <div class="head-actions">
+      <a class="btn-secondary" routerLink="/tecnico/incidentes">Ver servicio</a>
+      <button class="btn-secondary" (click)="refrescarManual()" [disabled]="chatLoading || !idIncidente">
+        Actualizar
+      </button>
+    </div>
+  </section>
+
+  <div *ngIf="loading" class="state-box">Cargando chat del servicio actual...</div>
+  <div *ngIf="error && !loading" class="state-box error">{{ error }}</div>
+
+  <ng-container *ngIf="!loading && !error">
+    <section class="empty-card" *ngIf="!idIncidente; else chatActivo">
+      <span class="chat-main-icon"></span>
+      <h2>No tienes un servicio activo</h2>
+      <p>Cuando tengas una asignacion actual, aqui aparecera el chat con el cliente.</p>
+      <a class="btn-primary" routerLink="/tecnico/incidentes">Ir a incidentes</a>
+    </section>
+
+    <ng-template #chatActivo>
+      <section class="chat-layout">
+        <aside class="service-panel">
+          <span class="eyebrow">Servicio actual</span>
+          <h2>#{{ idIncidente }}</h2>
+          <p>{{ asignacionActual?.descripcion || asignacionActual?.categoria || 'Servicio asignado' }}</p>
+
+          <div class="service-meta">
+            <div>
+              <span>Cliente</span>
+              <strong>{{ asignacionActual?.cliente || 'Cliente' }}</strong>
+            </div>
+            <div>
+              <span>Telefono</span>
+              <strong>{{ asignacionActual?.telefono || 'No registrado' }}</strong>
+            </div>
+            <div>
+              <span>Estado</span>
+              <strong>{{ asignacionActual?.estado || asignacionActual?.id_estado_asignacion || 'Activo' }}</strong>
+            </div>
+          </div>
+
+          <div class="sync-box" [class.online]="chatConectado">
+            <span class="sync-dot"></span>
+            <div>
+              <strong>{{ estadoConexion }}</strong>
+              <small *ngIf="ultimaActualizacion">
+                Ultima actualizacion: {{ ultimaActualizacion | date:'HH:mm:ss' }}
+              </small>
+              <small *ngIf="!ultimaActualizacion">Actualiza automaticamente cada 5 segundos.</small>
+            </div>
+          </div>
+        </aside>
+
+        <section class="chat-panel">
+          <div class="chat-toolbar">
+            <div>
+              <span class="eyebrow">Mensajes</span>
+              <h3>Cliente y tecnico</h3>
+            </div>
+            <span class="message-count">{{ mensajes.length }} mensajes</span>
+          </div>
+
+          <div *ngIf="chatError" class="chat-error">{{ chatError }}</div>
+          <div *ngIf="chatLoading" class="state-box compact">Cargando mensajes...</div>
+
+          <div id="chat-tecnico-vista-lista" class="message-list" *ngIf="!chatLoading">
+            <div *ngIf="mensajes.length === 0" class="empty-messages">
+              Aun no hay mensajes en este incidente.
+            </div>
+
+            <div
+              class="message-row"
+              *ngFor="let msg of mensajes"
+              [class.mine]="msg.emisor_tipo === 'tecnico'">
+              <div class="message-bubble">
+                <div class="message-top">
+                  <strong>{{ msg.emisor_tipo === 'tecnico' ? 'Tu' : 'Cliente' }}</strong>
+                  <small>{{ msg.fecha_hora | date:'HH:mm' }}</small>
+                </div>
+                <p>{{ msg.mensaje }}</p>
+                <span *ngIf="(msg.id || 0) < 0" class="pending">Enviando...</span>
+              </div>
+            </div>
+          </div>
+
+          <div class="compose-bar">
+            <input
+              type="text"
+              [(ngModel)]="mensajeTexto"
+              placeholder="Escribe un mensaje"
+              (keyup.enter)="enviarMensaje()" />
+            <button class="btn-primary" (click)="enviarMensaje()" [disabled]="!mensajeTexto.trim() || enviando">
+              {{ enviando ? 'Enviando...' : 'Enviar' }}
+            </button>
+          </div>
+        </section>
+      </section>
+    </ng-template>
+  </ng-container>
+</div>

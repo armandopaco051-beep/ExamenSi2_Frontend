@@ -1,0 +1,30 @@
+.page-wrapper {
+  max-width: 1300px; margin: 0 auto; padding: 32px 24px;
+}
+.page-header {
+  margin-bottom: 24px;
+  h1 { font-size: 24px; font-weight: 700; margin-bottom: 4px; }
+  p { color: var(--text-muted); font-size: 14px; }
+}
+.filtros {
+  display: flex; gap: 16px; align-items: flex-end; margin-bottom: 20px;
+  padding: 20px;
+  @media (max-width: 768px) { flex-direction: column; }
+}
+.filtros-btns {
+  display: flex; gap: 10px; align-items: center; padding-top: 4px;
+}
+.empty { text-align: center; color: var(--text-muted); padding: 40px; }
+
+.accion-badge {
+  padding: 3px 8px; border-radius: 6px; font-size: 11px; font-weight: 600;
+  &.info { background: rgba(33,150,243,.15); color: #90caf9; }
+  &.success { background: rgba(76,175,80,.15); color: #a5d6a7; }
+  &.danger { background: rgba(244,67,54,.15); color: #ff8a80; }
+  &.warning { background: rgba(255,152,0,.15); color: #ffcc80; }
+  &.default { background: rgba(255,255,255,.07); color: #8b949e; }
+}
+.modulo-badge {
+  padding: 3px 8px; border-radius: 6px; font-size: 11px;
+  background: rgba(255,107,53,.1); color: #ffab91;
+}

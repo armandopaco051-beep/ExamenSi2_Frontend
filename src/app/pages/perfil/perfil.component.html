@@ -1,0 +1,118 @@
+<app-navbar></app-navbar>
+
+<div class="perfil-wrapper">
+  <div class="perfil-header">
+    <h1>👤 Mi Perfil</h1>
+    <p>Gestiona tu información personal y credenciales</p>
+  </div>
+
+  <div class="perfil-grid">
+
+    <!-- LADO IZQUIERDO -->
+    <div class="perfil-side card">
+      <div class="avatar-circle">{{ getInitial() }}</div>
+      <div class="perfil-name">{{ usuario?.nombre }} {{ usuario?.apellido }}</div>
+      <div class="perfil-role">{{ Esadmin() }}</div>
+
+      <div class="perfil-info">
+        <div class="info-row">
+          <span class="label">Correo</span>
+          <span>{{ usuario?.email }}</span>
+        </div>
+        <div class="info-row">
+          <span class="label">Teléfono</span>
+          <span>{{ usuario?.telefono }}</span>
+        </div>
+        <div class="info-row">
+          <span class="label">Estado</span>
+          <span class="badge active">Activo</span>
+        </div>
+        <div class="info-row">
+          <span class="label">Registro</span>
+          <span>{{ usuario?.fecha_registro | date:'dd/MM/yyyy' }}</span>
+        </div>
+      </div>
+    </div>
+
+    <!-- LADO DERECHO -->
+    <div class="perfil-main">
+
+      <!-- DATOS PERSONALES -->
+      <div class="card section">
+        <h3>Editar información personal</h3>
+
+        <div *ngIf="successPerfil" class="alert alert-success">
+          ✅ Perfil actualizado correctamente
+        </div>
+        <div *ngIf="error" class="alert alert-error">{{ error }}</div>
+
+        <div class="form-grid">
+          <div class="form-group">
+            <label>Nombre</label>
+            <input type="text" [(ngModel)]="form.nombre" />
+          </div>
+          <div class="form-group">
+            <label>Apellido</label>
+            <input type="text" [(ngModel)]="form.apellidos" />
+          </div>
+          <div class="form-group">
+            <label>Correo electrónico</label>
+            <input type="email" [(ngModel)]="form.email" />
+          </div>
+          <div class="form-group">
+            <label>Teléfono</label>
+            <input type="text" [(ngModel)]="form.telefono" />
+          </div>
+        </div>
+
+        <div class="section-footer">
+          <button
+            class="btn-primary"
+            style="width:auto"
+            (click)="guardarPerfil()"
+            [disabled]="loading">
+            {{ loading ? 'Guardando...' : 'Guardar cambios' }}
+          </button>
+        </div>
+      </div>
+
+      <!-- CAMBIAR PASSWORD -->
+      <div class="card section">
+        <h3>Cambiar password</h3>
+
+        <div *ngIf="successPass" class="alert alert-success">
+          ✅ Password actualizada correctamente
+        </div>
+        <div *ngIf="errorPass" class="alert alert-error">{{ errorPass }}</div>
+
+        <div class="form-grid">
+          <div class="form-group">
+            <label>Nuevo password</label>
+            <input
+              type="password"
+              [(ngModel)]="passwordForm.password"
+              placeholder="Mínimo 8 caracteres" />
+          </div>
+          <div class="form-group">
+            <label>Confirmar password</label>
+            <input
+              type="password"
+              [(ngModel)]="passwordForm.confirmar"
+              placeholder="Repite el password" />
+          </div>
+        </div>
+
+        <div class="section-footer">
+          <button
+            class="btn-primary"
+            style="width:auto"
+            (click)="cambiarPassword()"
+            [disabled]="loadingPass">
+            {{ loadingPass ? 'Actualizando...' : 'Cambiar password' }}
+          </button>
+        </div>
+      </div>
+
+    </div>
+  </div>
+</div>

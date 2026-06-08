@@ -1,0 +1,161 @@
+.payments-page {
+  min-height: calc(100vh - 64px);
+  padding: 26px;
+  background: #07111f;
+  color: #fff;
+}
+
+.page-header,
+.modal-head,
+.modal-actions {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 14px;
+}
+
+.page-header {
+  margin-bottom: 20px;
+
+  h1 {
+    margin: 5px 0;
+    font-size: 30px;
+  }
+
+  p {
+    margin: 0;
+    color: #9fb8d3;
+  }
+}
+
+.eyebrow {
+  color: #ffb15c;
+  font-size: 11px;
+  font-weight: 900;
+  text-transform: uppercase;
+}
+
+.state-box,
+.payments-table,
+.modal-card {
+  background: #0b1b2e;
+  border: 1px solid rgba(255,255,255,.08);
+  border-radius: 8px;
+}
+
+.state-box {
+  padding: 28px;
+  text-align: center;
+  color: #9fb8d3;
+
+  &.error {
+    color: #ffb0ba;
+    border-color: rgba(255,77,94,.28);
+  }
+}
+
+.table-scroll {
+  overflow-x: auto;
+}
+
+table {
+  min-width: 940px;
+}
+
+td a {
+  display: inline-block;
+  color: #73f0cf;
+  font-weight: 800;
+  margin-right: 10px;
+}
+
+.status-chip {
+  display: inline-flex;
+  background: rgba(45,212,191,.12);
+  color: #73f0cf;
+  border-radius: 999px;
+  padding: 6px 10px;
+  font-size: 11px;
+  font-weight: 900;
+}
+
+.empty {
+  color: #9fb8d3;
+  text-align: center;
+  padding: 30px;
+}
+
+.btn-secondary,
+.btn-primary,
+.btn-mini {
+  border: none;
+  border-radius: 8px;
+  cursor: pointer;
+  font-weight: 900;
+  padding: 10px 13px;
+  text-decoration: none;
+}
+
+.btn-secondary,
+.btn-mini {
+  background: #132b47;
+  color: #fff;
+}
+
+.btn-primary {
+  background: #ff6b35;
+  color: #fff;
+}
+
+.modal-overlay {
+  padding: 18px;
+}
+
+.modal-card {
+  width: min(620px, 100%);
+  padding: 20px;
+}
+
+.receipt-grid {
+  display: grid;
+  grid-template-columns: repeat(2, 1fr);
+  gap: 12px;
+
+  div {
+    background: #081a2d;
+    border-radius: 8px;
+    padding: 14px;
+  }
+
+  span,
+  strong {
+    display: block;
+  }
+
+  span {
+    color: #9fb8d3;
+    margin-bottom: 5px;
+  }
+}
+
+.modal-actions {
+  justify-content: flex-end;
+  margin-top: 18px;
+}
+
+@media (max-width: 700px) {
+  .payments-page {
+    padding: 16px;
+  }
+
+  .page-header,
+  .modal-head,
+  .modal-actions {
+    align-items: stretch;
+    flex-direction: column;
+  }
+
+  .receipt-grid {
+    grid-template-columns: 1fr;
+  }
+}

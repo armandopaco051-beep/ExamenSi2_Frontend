@@ -1,0 +1,204 @@
+<div class="registro-shell">
+  <section class="registro-left">
+    <div class="left-content">
+      <div class="brand">
+        <a routerLink="/" class="brand brand-link">
+          <div class="brand-logo-wrap">
+            <img src="/logo-vialert.png" alt="Logo VIALERT" class="brand-logo" />
+          </div>
+        </a>
+
+        <div class="brand-texts">
+          <h1>VIALERT</h1>
+          <p>Emergencias Vehiculares</p>
+        </div>
+      </div>
+
+      <div class="hero-copy">
+        <h2>
+          Diagnóstico
+          <span>inteligente,</span>
+          respuesta
+          <span>inmediata.</span>
+        </h2>
+
+        <p class="hero-desc">
+          Plataforma con IA para atender emergencias vehiculares en tiempo real,
+          conectando conductores, talleres y servicios de auxilio.
+        </p>
+      </div>
+
+      <div class="stats">
+        <div class="stat-card">
+          <strong>24/7</strong>
+          <span>Disponible</span>
+        </div>
+
+        <div class="stat-card">
+          <strong>&lt;3min</strong>
+          <span>Respuesta</span>
+        </div>
+
+        <div class="stat-card">
+          <strong>IA</strong>
+          <span>Diagnóstico</span>
+        </div>
+      </div>
+
+      <div class="left-footer">
+        © 2026 VIALERT. Todos los derechos reservados.
+      </div>
+    </div>
+  </section>
+
+  <section class="registro-right">
+    <div class="registro-card">
+      <div class="header">
+        <h2>Crea tu cuenta</h2>
+        <p *ngIf="form.id_rol === 4">Regístrate como cliente.</p>
+        <p *ngIf="form.id_rol === 2">Envía tu solicitud como administrador de taller.</p>
+      </div>
+
+      <div *ngIf="error" class="alert alert-error">{{ error }}</div>
+      <div *ngIf="success" class="alert alert-success">{{ success }}</div>
+
+      <div class="form-group">
+        <label>Tipo de cuenta</label>
+        <select [(ngModel)]="form.id_rol">
+          <option [ngValue]="4">Cliente</option>
+          <option [ngValue]="2">Administrador de taller</option>
+        </select>
+      </div>
+
+      <div class="form-grid">
+        <div class="form-group">
+          <label>Nombre</label>
+          <input type="text" [(ngModel)]="form.nombre" placeholder="Tu nombre" />
+        </div>
+
+        <div class="form-group">
+          <label>Apellido</label>
+          <input type="text" [(ngModel)]="form.apellido" placeholder="Tu apellido" />
+        </div>
+      </div>
+
+      <div class="form-group">
+        <label>CI</label>
+        <input type="text" [(ngModel)]="form.codigo" placeholder="Tu CI" />
+      </div>
+
+      <div class="form-group">
+        <label>Correo electrónico</label>
+        <input type="email" [(ngModel)]="form.email" placeholder="tu@correo.com" />
+      </div>
+
+      <div class="form-group">
+        <label>Teléfono</label>
+        <input type="text" [(ngModel)]="form.telefono" placeholder="+591 7XXXXXXX" />
+      </div>
+
+      <div class="form-group">
+        <label>Contraseña</label>
+        <input type="password" [(ngModel)]="form.password" placeholder="Mínimo 8 caracteres" />
+      </div>
+
+      <div *ngIf="form.id_rol === 2" class="bloque-taller">
+        <div class="subtitulo-bloque">
+          <h3>Datos del taller</h3>
+          <p>Estos datos serán enviados como solicitud para revisión del administrador.</p>
+        </div>
+
+        <div class="form-group">
+          <label>Nombre del taller</label>
+          <input type="text" [(ngModel)]="form.nombre_taller" placeholder="Nombre del taller" />
+        </div>
+
+        <div class="form-group">
+          <label>Teléfono del taller</label>
+          <input type="text" [(ngModel)]="form.telefono_taller" placeholder="Teléfono del taller" />
+        </div>
+
+        <div class="form-group">
+          <label>Dirección del taller</label>
+          <div class="direccion-map-row">
+            <input
+              type="text"
+              [(ngModel)]="form.direccion_taller"
+              placeholder="Selecciona en el mapa"
+              readonly
+            />
+            <button type="button" class="btn-map" (click)="abrirMapaRegistro()">
+              📍 Seleccionar en mapa
+            </button>
+          </div>
+        </div>
+
+        <div class="form-grid">
+          <div class="form-group">
+            <label>Latitud</label>
+            <input type="number" [(ngModel)]="form.latitud_taller" readonly />
+          </div>
+
+          <div class="form-group">
+            <label>Longitud</label>
+            <input type="number" [(ngModel)]="form.longitud_taller" readonly />
+          </div>
+        </div>
+
+        <div class="form-grid">
+          <div class="form-group">
+            <label>Horario de apertura</label>
+            <input type="time" [(ngModel)]="form.horario_inicio" />
+          </div>
+
+          <div class="form-group">
+            <label>Horario de cierre</label>
+            <input type="time" [(ngModel)]="form.horario_fin" />
+          </div>
+        </div>
+      </div>
+
+      <label class="terms-check">
+        <input type="checkbox" />
+        <span>
+          Acepto los <a href="#">términos</a> y la <a href="#">política de privacidad</a>.
+        </span>
+      </label>
+
+      <button class="btn-primary" (click)="onRegistro()" [disabled]="loading">
+        {{ loading ? 'Procesando...' : (form.id_rol === 2 ? 'Enviar solicitud' : 'Registrarse') }}
+      </button>
+
+      <p class="login-link">
+        ¿Ya tienes cuenta?
+        <a routerLink="/login">Inicia sesión</a>
+      </p>
+    </div>
+  </section>
+</div>
+
+<div class="map-modal-backdrop" *ngIf="mostrarMapaRegistro" (click)="cerrarMapaRegistro()">
+  <div class="map-modal" (click)="$event.stopPropagation()">
+    <div class="map-modal-header">
+      <h3>📍 Ubicación del taller</h3>
+      <button type="button" class="close-btn" (click)="cerrarMapaRegistro()">✕</button>
+    </div>
+
+    <p class="map-help">Haz clic en el mapa para marcar la ubicación del taller.</p>
+
+    <div id="mapa-registro-taller" class="mapa-box"></div>
+
+    <div class="map-preview" *ngIf="form.latitud_taller && form.longitud_taller">
+      <strong>Ubicación seleccionada:</strong><br />
+      {{ form.direccion_taller || 'Sin dirección detectada' }}<br />
+      <small>Lat: {{ form.latitud_taller }} | Lng: {{ form.longitud_taller }}</small>
+    </div>
+
+    <div class="map-actions">
+      <button type="button" class="btn-secondary" (click)="cerrarMapaRegistro()">Cancelar</button>
+      <button type="button" class="btn-primary btn-confirm-map" (click)="confirmarUbicacionRegistro()">
+        Confirmar ubicación
+      </button>
+    </div>
+  </div>
+</div>

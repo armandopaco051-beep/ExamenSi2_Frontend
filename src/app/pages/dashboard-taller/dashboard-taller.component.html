@@ -1,0 +1,148 @@
+<app-navbar></app-navbar>
+
+<div class="taller-dashboard">
+  <div *ngIf="loading" class="state-box">Cargando dashboard del taller...</div>
+  <div *ngIf="error && !loading" class="state-box error">{{ error }}</div>
+
+  <ng-container *ngIf="!loading && !error">
+
+    <section class="panel-shell">
+      <div class="panel-header">
+        <h2>Dashboard admin taller</h2>
+      </div>
+
+      <div class="hero-card">
+        <div class="hero-copy">
+          <span class="hero-label">Estado del taller</span>
+          <h1>{{ stats.pendientes }} incidentes activos</h1>
+          <p>
+            {{ stats.total_tecnicos }} técnicos ·
+            {{ getCriticos() }} caso crítico ·
+            {{ stats.aceptadas }} asignaciones aceptadas
+          </p>
+        </div>
+
+        <div class="hero-pill">
+          Taller #{{ idTaller }}
+        </div>
+      </div>
+
+      <div class="stats-grid">
+        <div class="stat-card">
+          <span>Activos</span>
+          <strong>{{ stats.pendientes }}</strong>
+        </div>
+
+        <div class="stat-card">
+          <span>Técnicos</span>
+          <strong>{{ stats.total_tecnicos }}</strong>
+        </div>
+
+        <div class="stat-card">
+          <span>Completados</span>
+          <strong>{{ stats.completadas }}</strong>
+        </div>
+
+        <div class="stat-card">
+          <span>Cobros</span>
+          <strong>Bs {{ getCobrosFake() }}</strong>
+        </div>
+      </div>
+
+      <div class="quick-panel">
+        <div class="quick-head">
+          <h3>Accesos rápidos</h3>
+          <span>Hoy</span>
+        </div>
+
+        <div class="quick-grid">
+          <a class="quick-card" [routerLink]="['/admin-taller/tecnicos']">
+            <div class="quick-icon">🧑‍🔧</div>
+            <h4>Gestionar técnicos</h4>
+            <p>{{ stats.total_tecnicos }} técnicos del taller</p>
+          </a>
+
+          <a class="quick-card" href="javascript:void(0)">
+            <div class="quick-icon">🚨</div>
+            <h4>Incidentes</h4>
+            <p>{{ stats.pendientes }} activos hoy</p>
+          </a>
+
+          <a class="quick-card" href="javascript:void(0)">
+            <div class="quick-icon">📍</div>
+            <h4>Seguimiento</h4>
+            <p>Rutas y estados</p>
+          </a>
+
+          <a class="quick-card" href="javascript:void(0)">
+            <div class="quick-icon">💳</div>
+            <h4>Cobros</h4>
+            <p>Pagos y comisiones</p>
+          </a>
+        </div>
+      </div>
+    </section>
+
+    <section class="two-cols">
+      <div class="block-card">
+        <div class="block-head">
+          <h3>Estado de técnicos</h3>
+          <a [routerLink]="['/admin-taller/tecnicos']">Gestionar</a>
+        </div>
+
+        <div class="tech-list" *ngIf="tecnicos.length > 0; else sinTecnicos">
+          <div class="tech-item" *ngFor="let t of tecnicos | slice:0:4">
+            <div>
+              <strong>{{ t.nombre }}</strong>
+              <small>
+                {{ t.disponibilidad ? 'Disponible para asignación' : 'Actualmente ocupado' }}
+              </small>
+            </div>
+
+            <span class="estado-pill" [ngClass]="getClaseTecnico(t)">
+              {{ getEstadoTecnico(t) }}
+            </span>
+          </div>
+        </div>
+
+        <ng-template #sinTecnicos>
+          <div class="empty-box">No hay técnicos registrados en este taller</div>
+        </ng-template>
+      </div>
+
+      <div class="block-card">
+        <div class="block-head">
+          <h3>Incidentes del taller</h3>
+          <a href="javascript:void(0)" (click)="cargarIncidentesTaller()">Actualizar</a>
+        </div>
+
+        <div class="incident-list" *ngIf="solicitudes.length > 0; else sinIncidentes">
+          <div class="incident-item" *ngFor="let s of solicitudes | slice:0:5">
+            <div class="incident-top">
+              <div class="incident-code">#EV-{{ s.id_incidente }}</div>
+              <span class="estado-pill" [ngClass]="getClaseSolicitud(s.id_estado_asignacion)">
+                {{ getEstadoSolicitud(s.id_estado_asignacion) }}
+              </span>
+            </div>
+
+            <h4>{{ getNombreCategoria(s.id_categoria) }}</h4>
+            <p class="incident-desc">{{ s.descripcion }}</p>
+
+            <div class="incident-meta">
+              <span>{{ s.fecha | date:'dd/MM/yyyy HH:mm' }}</span>
+            </div>
+
+            <div class="incident-footer">
+              {{ getTextoResumen(s) }}
+            </div>
+          </div>
+        </div>
+
+        <ng-template #sinIncidentes>
+          <div class="empty-box">No hay incidentes asignados pendientes</div>
+        </ng-template>
+      </div>
+    </section>
+
+  </ng-container>
+</div>

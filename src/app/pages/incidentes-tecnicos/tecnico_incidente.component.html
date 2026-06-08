@@ -1,0 +1,373 @@
+<app-navbar></app-navbar>
+
+<div class="tecnico-page">
+
+  <div *ngIf="loading" class="state-box">
+    Cargando incidente asignado...
+  </div>
+
+  <div *ngIf="error && !loading" class="state-box error">
+    {{ error }}
+  </div>
+
+  <div *ngIf="mensajeExito && !loading" class="state-box success">
+    {{ mensajeExito }}
+  </div>
+
+  <ng-container *ngIf="!loading && !error">
+
+    <section class="hero-panel">
+      <div>
+        <span class="eyebrow">CU-25</span>
+        <h1>Actualizar progreso del tecnico</h1>
+        <p>Registra cada avance del servicio asignado.</p>
+      </div>
+
+      <button class="btn-secondary small-btn" (click)="cargarIncidenteActual()">
+        Actualizar
+      </button>
+    </section>
+
+    <section class="service-layout" *ngIf="incidenteActual; else sinIncidente">
+      <div class="card-large">
+        <div class="card-head">
+          <div>
+            <span class="eyebrow">#EV-{{ incidenteActual.id_incidente }}</span>
+            <h2>{{ incidenteActual.categoria }}</h2>
+          </div>
+
+          <span class="estado-chip">
+            {{ getEstadoTexto(incidenteActual.id_estado_asignacion) }}
+          </span>
+        </div>
+
+        <p class="descripcion">
+          {{ incidenteActual.descripcion }}
+        </p>
+
+        <div class="info-grid">
+          <div>
+            <span>Cliente</span>
+            <strong>{{ incidenteActual.cliente }}</strong>
+          </div>
+
+          <div>
+            <span>Telefono</span>
+            <strong>{{ incidenteActual.telefono }}</strong>
+          </div>
+
+          <div>
+            <span>Fecha</span>
+            <strong>{{ incidenteActual.fecha | date:'dd/MM/yyyy HH:mm' }}</strong>
+          </div>
+
+          <div>
+            <span>Ubicacion</span>
+            <strong>{{ incidenteActual.latitud }}, {{ incidenteActual.longitud }}</strong>
+          </div>
+        </div>
+
+        <div class="actions">
+          <button class="btn-secondary" (click)="verUbicacion()">
+            Ver ubicacion del cliente
+          </button>
+
+          <button class="btn-secondary" (click)="abrirRutaSiHayCoordenadas()">
+            Abrir ruta
+          </button>
+
+          <a class="btn-primary chat-open-btn" routerLink="/tecnico/chat">
+            <span class="chat-button-icon" aria-hidden="true"></span>
+            Chatear con cliente
+          </a>
+        </div>
+      </div>
+
+      <div class="progress-card">
+        <div class="progress-head">
+          <div>
+            <span class="eyebrow">Progreso</span>
+            <h3>Linea operativa</h3>
+          </div>
+          <span class="tracking-pill" [class.active]="intervalUbicacion">
+            {{ intervalUbicacion ? 'Tracking activo' : 'Tracking inactivo' }}
+          </span>
+        </div>
+
+        <div class="form-group">
+          <label>Observacion opcional</label>
+          <textarea
+            rows="3"
+            [(ngModel)]="observacion"
+            placeholder="Ej: Llegando por Av. Busch, trafico moderado"></textarea>
+        </div>
+
+        <div
+          class="arrival-box"
+          [class.ready]="incidenteActual.id_estado_asignacion === 5"
+          [class.done]="getOrdenEstado(incidenteActual.id_estado_asignacion) >= getOrdenEstado(10)">
+          <div class="arrival-head">
+            <div>
+              <strong>Validar arribo con el cliente</strong>
+              <span>Usa el PIN o token QR que el cliente muestra en su app.</span>
+            </div>
+            <span class="arrival-state">
+              {{ getOrdenEstado(incidenteActual.id_estado_asignacion) >= getOrdenEstado(10) ? 'Validado' : 'Pendiente' }}
+            </span>
+          </div>
+
+          <div class="mode-tabs">
+            <button
+              type="button"
+              [class.active]="modoValidacion === 'pin'"
+              (click)="modoValidacion = 'pin'">
+              PIN
+            </button>
+            <button
+              type="button"
+              [class.active]="modoValidacion === 'qr'"
+              (click)="modoValidacion = 'qr'">
+              QR
+            </button>
+          </div>
+
+          <div class="form-group" *ngIf="modoValidacion === 'pin'">
+            <label>PIN del cliente</label>
+            <input
+              type="text"
+              inputmode="numeric"
+              maxlength="12"
+              [(ngModel)]="pinArribo"
+              placeholder="Ej: 482913"
+              [disabled]="incidenteActual.id_estado_asignacion !== 5" />
+          </div>
+
+          <div class="form-group" *ngIf="modoValidacion === 'qr'">
+            <label>Token QR del cliente</label>
+            <input
+              type="text"
+              [(ngModel)]="qrTokenArribo"
+              placeholder="Pega o escanea el token QR"
+              [disabled]="incidenteActual.id_estado_asignacion !== 5" />
+          </div>
+
+          <button
+            class="btn-primary arrival-btn"
+            (click)="validarArriboCliente()"
+            [disabled]="incidenteActual.id_estado_asignacion !== 5 || validandoArribo">
+            {{ validandoArribo ? 'Validando...' : 'Validar arribo' }}
+          </button>
+        </div>
+
+        <div class="step-list">
+          <div
+            class="step-item"
+            *ngFor="let paso of pasosProgreso"
+            [class.done]="pasoCompletado(paso)"
+            [class.available]="puedeEjecutarPaso(paso)">
+            <div class="step-dot"></div>
+
+            <div class="step-copy">
+              <strong>{{ paso.titulo }}</strong>
+              <span>{{ paso.descripcion }}</span>
+            </div>
+
+            <button
+              class="btn-primary step-btn"
+              (click)="ejecutarPaso(paso)"
+              [disabled]="!puedeEjecutarPaso(paso) || !!progresoLoading">
+              {{ progresoLoading === paso.accion ? 'Guardando...' : getAccionTexto(paso.accion) }}
+            </button>
+          </div>
+        </div>
+      </div>
+
+      <div class="map-card">
+        <div class="progress-head">
+          <div>
+            <span class="eyebrow">Mapa</span>
+            <h3>Ubicacion en servicio</h3>
+          </div>
+          <span class="tracking-pill" [class.active]="intervalUbicacion">
+            {{ intervalUbicacion ? 'Enviando GPS' : 'GPS listo' }}
+          </span>
+        </div>
+
+        <div id="mapa-tecnico-servicio"></div>
+
+        <div class="map-help">
+          <span>Cliente: {{ incidenteActual.latitud }}, {{ incidenteActual.longitud }}</span>
+          <span>El marcador del tecnico se actualiza al enviar ubicacion.</span>
+        </div>
+      </div>
+
+      <div class="timeline-card">
+        <div class="progress-head">
+          <div>
+            <span class="eyebrow">Cliente</span>
+            <h3>Linea de tiempo</h3>
+          </div>
+          <button class="btn-secondary small-btn" (click)="cargarLineaTiempo()">Ver</button>
+        </div>
+
+        <div class="timeline-list" *ngIf="lineaTiempo.length > 0; else sinLineaTiempo">
+          <div class="timeline-item" *ngFor="let item of lineaTiempo">
+            <strong>{{ item.estado || item.accion || item.mensaje || 'Actualizacion' }}</strong>
+            <span>{{ item.observacion || item.descripcion || item.detalle || 'Sin observacion' }}</span>
+            <small>{{ (item.fecha || item.created_at || item.fecha_registro) | date:'dd/MM/yyyy HH:mm' }}</small>
+          </div>
+        </div>
+
+        <ng-template #sinLineaTiempo>
+          <div class="empty-timeline">Aun no hay eventos para mostrar.</div>
+        </ng-template>
+      </div>
+
+      <div class="chat-card">
+        <div class="progress-head">
+          <div>
+            <span class="eyebrow">Comunicacion directa</span>
+            <h3>Chat con el cliente</h3>
+          </div>
+          <span class="tracking-pill" [class.active]="chatConectado">
+            {{ chatConectado ? 'Conectado' : 'Reconectando' }}
+          </span>
+        </div>
+
+        <div *ngIf="chatError" class="chat-error">{{ chatError }}</div>
+        <div *ngIf="chatLoading" class="empty-timeline">Cargando mensajes...</div>
+
+        <div id="chat-tecnico-lista" class="chat-list" *ngIf="!chatLoading">
+          <div *ngIf="chatMensajes.length === 0" class="empty-timeline">
+            Aun no hay mensajes con el cliente.
+          </div>
+
+          <div
+            class="chat-row"
+            *ngFor="let msg of chatMensajes"
+            [class.mine]="msg.emisor_tipo === 'tecnico'">
+            <div class="chat-bubble">
+              <span class="chat-emisor">{{ msg.emisor_tipo }}</span>
+              <p>{{ msg.mensaje }}</p>
+              <small>{{ msg.fecha_hora | date:'HH:mm' }}</small>
+            </div>
+          </div>
+        </div>
+
+        <div class="chat-compose">
+          <input
+            type="text"
+            [(ngModel)]="chatTexto"
+            placeholder="Escribe un mensaje al cliente"
+            (keyup.enter)="!enviandoChat && enviarMensajeChat()" />
+          <button class="btn-primary" (click)="enviarMensajeChat()" [disabled]="!chatTexto.trim() || enviandoChat">
+            {{ enviandoChat ? 'Enviando...' : 'Enviar' }}
+          </button>
+        </div>
+      </div>
+
+      <div class="payment-card">
+        <div class="progress-head">
+          <div>
+            <span class="eyebrow">Cobro del servicio</span>
+            <h3>Conceptos realizados</h3>
+          </div>
+          <span class="tracking-pill" [class.active]="resumenCobro">
+            {{ resumenCobro?.estado_pago || 'Sin monto' }}
+          </span>
+        </div>
+
+        <div *ngIf="errorPagos" class="chat-error">{{ errorPagos }}</div>
+        <div *ngIf="loadingPagos" class="empty-timeline">Cargando conceptos de cobro...</div>
+
+        <div class="concept-list" *ngIf="!loadingPagos">
+          <label class="concept-item" *ngFor="let concepto of conceptosCobro">
+            <div class="concept-check">
+              <input
+                type="checkbox"
+                [(ngModel)]="conceptosSeleccionados[concepto.id].seleccionado" />
+            </div>
+
+            <div class="concept-main">
+              <div class="concept-title">
+                <strong>{{ concepto.nombre }}</strong>
+                <span>Bs {{ concepto.precio_unitario | number:'1.2-2' }}</span>
+              </div>
+              <p>{{ concepto.descripcion || concepto.tipo }}</p>
+
+              <div class="concept-fields" *ngIf="conceptosSeleccionados[concepto.id].seleccionado">
+                <div>
+                  <label>Cantidad</label>
+                  <input
+                    type="number"
+                    min="1"
+                    step="1"
+                    [(ngModel)]="conceptosSeleccionados[concepto.id].cantidad" />
+                </div>
+                <div>
+                  <label>Observacion</label>
+                  <input
+                    type="text"
+                    [(ngModel)]="conceptosSeleccionados[concepto.id].observacion"
+                    placeholder="Detalle del trabajo realizado" />
+                </div>
+              </div>
+            </div>
+          </label>
+        </div>
+
+        <button
+          class="btn-primary payment-save"
+          (click)="guardarConceptosCobro()"
+          [disabled]="guardandoCobro || loadingPagos">
+          {{ guardandoCobro ? 'Generando monto...' : 'Registrar conceptos' }}
+        </button>
+
+        <div class="payment-summary" *ngIf="resumenCobro">
+          <div>
+            <span>Subtotal</span>
+            <strong>Bs {{ resumenCobro.subtotal | number:'1.2-2' }}</strong>
+          </div>
+          <div>
+            <span>Descuento</span>
+            <strong>Bs {{ resumenCobro.descuento | number:'1.2-2' }}</strong>
+          </div>
+          <div class="total">
+            <span>Total</span>
+            <strong>Bs {{ resumenCobro.total | number:'1.2-2' }}</strong>
+          </div>
+        </div>
+
+        <div class="payment-detail" *ngIf="resumenCobro?.conceptos?.length">
+          <div class="payment-line" *ngFor="let item of resumenCobro?.conceptos">
+            <div>
+              <strong>{{ item.descripcion }}</strong>
+              <span>{{ item.cantidad }} x Bs {{ item.precio_unitario | number:'1.2-2' }}</span>
+              <small *ngIf="item.observacion">{{ item.observacion }}</small>
+            </div>
+            <strong>Bs {{ item.subtotal | number:'1.2-2' }}</strong>
+          </div>
+        </div>
+
+        <div class="receipt-box" *ngIf="comprobantePago">
+          <strong>Comprobante {{ comprobantePago.numero_comprobante }}</strong>
+          <span>{{ comprobantePago.fecha_emision | date:'dd/MM/yyyy HH:mm' }}</span>
+          <span>Total: Bs {{ comprobantePago.total | number:'1.2-2' }}</span>
+        </div>
+      </div>
+    </section>
+
+    <ng-template #sinIncidente>
+      <section class="card-large empty-service">
+        <span class="eyebrow">Sin servicio activo</span>
+        <h2>No tienes incidentes asignados actualmente</h2>
+        <p>
+          Cuando el administrador del taller te asigne un incidente,
+          aparecera en esta seccion.
+        </p>
+      </section>
+    </ng-template>
+
+  </ng-container>
+
+</div>

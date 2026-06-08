@@ -1,0 +1,92 @@
+.result-page {
+  min-height: calc(100vh - 64px);
+  display: grid;
+  place-items: center;
+  background: #07111f;
+  color: #fff;
+  padding: 24px;
+}
+
+.result-card {
+  width: min(620px, 100%);
+  background: #0b1b2e;
+  border: 1px solid rgba(45, 212, 191, .28);
+  border-radius: 8px;
+  padding: 34px;
+  text-align: center;
+
+  &.cancel {
+    border-color: rgba(245, 158, 11, .35);
+  }
+
+  h1 {
+    margin: 10px 0;
+    font-size: 34px;
+  }
+
+  p {
+    color: #b7c7da;
+    line-height: 1.6;
+  }
+}
+
+.eyebrow {
+  color: #ffb15c;
+  font-size: 12px;
+  font-weight: 900;
+  text-transform: uppercase;
+}
+
+.session-box,
+.plan-box,
+.state-box {
+  margin: 18px 0;
+  background: #081a2d;
+  border-radius: 8px;
+  padding: 14px;
+  color: #9fb8d3;
+}
+
+.state-box.error {
+  color: #ffb0ba;
+}
+
+.plan-box {
+  span,
+  strong,
+  small {
+    display: block;
+  }
+
+  strong {
+    color: #fff;
+    font-size: 22px;
+    margin: 6px 0;
+  }
+}
+
+.actions {
+  display: flex;
+  justify-content: center;
+  gap: 12px;
+  flex-wrap: wrap;
+  margin-top: 22px;
+}
+
+.btn-primary,
+.btn-secondary {
+  border-radius: 8px;
+  font-weight: 900;
+  padding: 12px 16px;
+  text-decoration: none;
+}
+
+.btn-primary {
+  background: #ff6b35;
+  color: #fff;
+}
+
+.btn-secondary {
+  background: #132b47;
+  color: #fff;
+}

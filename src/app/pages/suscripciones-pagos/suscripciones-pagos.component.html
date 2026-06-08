@@ -1,0 +1,83 @@
+<app-navbar></app-navbar>
+
+<main class="payments-page">
+  <header class="page-header">
+    <div>
+      <span class="eyebrow">Suscripciones</span>
+      <h1>Historial de pagos</h1>
+      <p>Pagos, facturas Stripe y comprobantes internos del tenant #{{ idTenant || '...' }}.</p>
+    </div>
+    <button class="btn-secondary" (click)="cargarHistorial()" [disabled]="loading || !idTenant">Actualizar</button>
+  </header>
+
+  <div *ngIf="loading" class="state-box">Cargando pagos...</div>
+  <div *ngIf="error && !loading" class="state-box error">{{ error }}</div>
+
+  <section class="payments-table" *ngIf="!loading && !error">
+    <div class="table-scroll">
+      <table>
+        <thead>
+          <tr>
+            <th>Monto</th>
+            <th>Moneda</th>
+            <th>Estado</th>
+            <th>Fecha de pago</th>
+            <th>Factura Stripe</th>
+            <th>Comprobante</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr *ngFor="let pago of pagos">
+            <td><strong>{{ monto(pago.monto) }}</strong></td>
+            <td>{{ pago.moneda || 'BOB' }}</td>
+            <td><span class="status-chip">{{ pago.estado }}</span></td>
+            <td>{{ fechaPago(pago) | date:'dd/MM/yyyy HH:mm' }}</td>
+            <td>
+              <a *ngIf="pago.hosted_invoice_url" [href]="pago.hosted_invoice_url" target="_blank" rel="noopener">Ver factura</a>
+              <a *ngIf="pago.invoice_pdf" [href]="pago.invoice_pdf" target="_blank" rel="noopener">PDF</a>
+              <span *ngIf="!pago.hosted_invoice_url && !pago.invoice_pdf">Sin factura</span>
+            </td>
+            <td>
+              <button
+                class="btn-mini"
+                *ngIf="idComprobante(pago)"
+                (click)="verComprobante(idComprobante(pago))">
+                Ver comprobante
+              </button>
+              <span *ngIf="!idComprobante(pago)">Sin comprobante</span>
+            </td>
+          </tr>
+
+          <tr *ngIf="pagos.length === 0">
+            <td colspan="6" class="empty">No hay pagos registrados.</td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
+  </section>
+</main>
+
+<div class="modal-overlay" *ngIf="comprobanteSeleccionado" (click)="cerrarComprobante()">
+  <section class="modal-card" (click)="$event.stopPropagation()">
+    <div class="modal-head">
+      <div>
+        <span class="eyebrow">Comprobante interno</span>
+        <h2>{{ comprobanteSeleccionado.numero_comprobante || 'Comprobante' }}</h2>
+      </div>
+      <button class="close-btn" (click)="cerrarComprobante()">×</button>
+    </div>
+
+    <div class="receipt-grid">
+      <div><span>Estado</span><strong>{{ comprobanteSeleccionado.estado || 'Emitido' }}</strong></div>
+      <div><span>Fecha</span><strong>{{ comprobanteSeleccionado.fecha_emision | date:'dd/MM/yyyy HH:mm' }}</strong></div>
+      <div><span>Total</span><strong>{{ monto(comprobanteSeleccionado.total || comprobanteSeleccionado.monto) }}</strong></div>
+      <div><span>Moneda</span><strong>{{ comprobanteSeleccionado.moneda || 'BOB' }}</strong></div>
+    </div>
+
+    <div class="modal-actions">
+      <a *ngIf="comprobanteSeleccionado.hosted_invoice_url" class="btn-secondary" [href]="comprobanteSeleccionado.hosted_invoice_url" target="_blank" rel="noopener">Factura Stripe</a>
+      <a *ngIf="comprobanteSeleccionado.invoice_pdf" class="btn-secondary" [href]="comprobanteSeleccionado.invoice_pdf" target="_blank" rel="noopener">PDF</a>
+      <button class="btn-primary" (click)="cerrarComprobante()">Cerrar</button>
+    </div>
+  </section>
+</div>

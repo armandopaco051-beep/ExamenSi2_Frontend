@@ -1,0 +1,287 @@
+<app-navbar></app-navbar>
+
+<div class="page-wrapper">
+  <div class="page-header">
+    <div>
+      <h1>👥 Gestión de Usuarios</h1>
+      <p>Administra usuarios y roles del sistema</p>
+    </div>
+    <button class="btn-primary" style="width:auto" (click)="abrirModal()">
+      + Nuevo Usuario
+    </button>
+  </div>
+
+  <div class="card">
+    <table>
+      <thead>
+        <tr>
+          <th>CI</th><th>Nombre</th><th>Email</th>
+          <th>Teléfono</th><th>Rol</th><th>Estado</th><th>Acciones</th>
+        </tr>
+      </thead>
+      <tbody>
+        <tr *ngFor="let u of usuarios">
+          <td style="font-family:monospace;font-size:12px">{{ u.codigo }}</td>
+          <td>{{ u.nombre }} {{ u.apellido }}</td>
+          <td style="font-size:12px">{{ u.email }}</td>
+          <td>{{ u.telefono }}</td>
+          <td>
+            <span class="rol-badge" [ngClass]="'rol-'+u.id_rol">
+              {{ getNombreRol(u.id_rol) }}
+            </span>
+          </td>
+          <td>
+            <span class="badge"
+              [class.active]="u.estado" [class.inactive]="!u.estado">
+              {{ u.estado ? 'Activo' : 'Inactivo' }}
+            </span>
+          </td>
+          <td class="actions">
+            <button class="btn-secondary" (click)="abrirModal(u)">✏️ Editar</button>
+            <button class="btn-danger" (click)="desactivar(u.codigo)">🗑️ Eliminar</button>
+          </td>
+        </tr>
+        <tr *ngIf="usuarios.length === 0">
+          <td colspan="7" class="empty">No hay usuarios registrados</td>
+        </tr>
+      </tbody>
+    </table>
+  </div>
+</div>
+
+<!-- ═══════════════════════ MODAL ═══════════════════════ -->
+<!-- MODAL -->
+<div class="modal-overlay" *ngIf="mostrarModal" (click)="cerrarModal()">
+  <div class="modal user-modal" (click)="$event.stopPropagation()">
+
+    <!-- HEADER -->
+    <div class="modal-header">
+      <div class="modal-title-wrap">
+        <span class="modal-icon">👤</span>
+        <div>
+          <h2>{{ editandoCodigo ? 'Editar Usuario' : 'Nuevo Usuario' }}</h2>
+          <p *ngIf="!editandoCodigo">
+            {{ esAdminTaller ? 'Paso 1 de 2 · Datos del usuario administrador del taller' : 'Completa los datos del usuario' }}
+          </p>
+          <p *ngIf="editandoCodigo">Actualiza los datos del usuario</p>
+        </div>
+      </div>
+
+      <button type="button" class="btn-close" (click)="cerrarModal()">✕</button>
+    </div>
+
+    <!-- STEPS -->
+    <div class="steps-bar" *ngIf="!editandoCodigo && esAdminTaller">
+      <div class="step-item" [class.active]="paso === 1">
+        <span>1</span>
+        <strong>Usuario</strong>
+      </div>
+      <div class="step-line"></div>
+      <div class="step-item" [class.active]="paso === 2">
+        <span>2</span>
+        <strong>Taller</strong>
+      </div>
+    </div>
+
+    <div *ngIf="error" class="alert alert-error">{{ error }}</div>
+
+    <!-- PASO 1: USUARIO -->
+    <ng-container *ngIf="paso === 1">
+      <div class="form-grid two-cols">
+        <div class="form-group">
+          <label>CI (Cédula de identidad) *</label>
+          <input
+            type="text"
+            [(ngModel)]="formUsuario.codigo"
+            [disabled]="!!editandoCodigo"
+            placeholder="Ej: 12345678"
+          />
+        </div>
+
+        <div class="form-group">
+          <label>Rol *</label>
+          <select [(ngModel)]="formUsuario.id_rol" name="id_rol">
+            <option [ngValue]="null" disabled>Selecciona un rol</option>
+            <option *ngFor="let r of getRolesDisponibles()" [ngValue]="r.id">
+              {{ r.nombre }}
+            </option>
+          </select>
+        </div>
+
+        <div class="form-group">
+          <label>Nombre *</label>
+          <input
+            type="text"
+            [(ngModel)]="formUsuario.nombre"
+            placeholder="Ingresa el nombre"
+          />
+        </div>
+
+        <div class="form-group">
+          <label>Apellido *</label>
+          <input
+            type="text"
+            [(ngModel)]="formUsuario.apellido"
+            placeholder="Ingresa el apellido"
+          />
+        </div>
+
+        <div class="form-group">
+          <label>Email *</label>
+          <input
+            type="email"
+            [(ngModel)]="formUsuario.email"
+            placeholder="correo@ejemplo.com"
+          />
+        </div>
+
+        <div class="form-group">
+          <label>Teléfono *</label>
+          <input
+            type="text"
+            [(ngModel)]="formUsuario.telefono"
+            placeholder="+591 7XXXXXXX"
+          />
+        </div>
+
+        <div class="form-group full-width" *ngIf="!editandoCodigo">
+          <label>Contraseña *</label>
+          <input
+            type="password"
+            [(ngModel)]="formUsuario.password"
+            placeholder="Mínimo 8 caracteres"
+          />
+        </div>
+      </div>
+
+      <div class="info-box" *ngIf="esAdminTaller && !editandoCodigo">
+        Después de guardar este usuario, se abrirá el formulario para registrar su taller.
+      </div>
+
+      <div class="modal-actions">
+        <button type="button" class="btn-secondary" (click)="cerrarModal()">
+          Cancelar
+        </button>
+
+        <button
+          type="button"
+          class="btn-primary"
+          (click)="guardarUsuario()"
+          [disabled]="loading"
+        >
+          {{ loading ? 'Guardando...' : (esAdminTaller && !editandoCodigo ? 'Continuar' : 'Guardar Usuario') }}
+        </button>
+      </div>
+    </ng-container>
+
+    <!-- PASO 2: TALLER -->
+    <ng-container *ngIf="paso === 2">
+      <div class="form-grid two-cols">
+        <div class="form-group full-width">
+          <label>Nombre del taller *</label>
+          <input
+            type="text"
+            [(ngModel)]="formTaller.nombre"
+            placeholder="Ej: Taller Central Norte"
+          />
+        </div>
+
+        <div class="form-group full-width">
+          <label>Teléfono *</label>
+          <input
+            type="text"
+            [(ngModel)]="formTaller.telefono"
+            placeholder="+591 7XXXXXXX"
+          />
+        </div>
+
+        <div class="form-group full-width address-row">
+          <div class="address-input">
+            <label>Dirección *</label>
+            <input
+              type="text"
+              [(ngModel)]="formTaller.direccion"
+              placeholder="Selecciona en el mapa o escribe la dirección"
+            />
+          </div>
+
+          <button type="button" class="btn-map" (click)="abrirMapa()">
+            📍 Seleccionar en mapa
+          </button>
+        </div>
+
+        <div class="form-group">
+          <label>Latitud</label>
+          <input type="number" [(ngModel)]="formTaller.latitud" />
+        </div>
+
+        <div class="form-group">
+          <label>Longitud</label>
+          <input type="number" [(ngModel)]="formTaller.longitud" />
+        </div>
+      </div>
+       <div class="form-grid">
+        <div class="form-group">
+         <label>Horario de apertura *</label>
+           <input
+         type="time"
+          [(ngModel)]="formTaller.horario_inicio"
+           placeholder="08:00"
+    />
+  </div>
+
+  <div class="form-group">
+    <label>Horario de cierre *</label>
+    <input
+      type="time"
+      [(ngModel)]="formTaller.horario_fin"
+      placeholder="18:00"
+    />
+  </div>
+</div>
+
+      <div class="modal-actions">
+        <button type="button" class="btn-secondary" (click)="paso = 1">
+          Volver
+        </button>
+
+        <div class="action-right">
+          <button type="button" class="btn-secondary" (click)="cerrarModal()">
+            Cancelar
+          </button>
+
+          <button
+            type="button"
+            class="btn-primary"
+            (click)="guardarTaller()"
+            [disabled]="loading"
+          >
+            {{ loading ? 'Guardando...' : 'Guardar Taller' }}
+          </button>
+        </div>
+      </div>
+    </ng-container>
+  </div>
+</div>
+<!-- ═══ MODAL MAPA (dentro del modal usuario) ═══ -->
+<div class="modal-overlay mapa-z" *ngIf="mostrarMapa">
+  <div class="modal-mapa card" (click)="$event.stopPropagation()">
+    <div class="mapa-header">
+      <h3>📍 Ubicación del Taller</h3>
+      <button class="close-btn" (click)="mostrarMapa = false">✕</button>
+    </div>
+    <div class="mapa-instruc">
+      Clic en el mapa para marcar la ubicación del taller
+    </div>
+    <div id="mapa-usuarios-modal" style="height:380px;width:100%"></div>
+    <div class="mapa-result" *ngIf="formTaller.direccion">
+      📌 {{ formTaller.direccion }}
+    </div>
+    <div class="mapa-footer">
+      <button class="btn-secondary"
+        (click)="mostrarMapa = false">Cancelar</button>
+      <button class="btn-primary" style="width:auto"
+        (click)="confirmarUbicacion()">Confirmar Ubicación</button>
+    </div>
+  </div>
+</div>

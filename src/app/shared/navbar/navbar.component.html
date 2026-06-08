@@ -1,0 +1,93 @@
+<nav class="navbar">
+  <a class="navbar-brand" [routerLink]="getBrandLink()">
+    <span>🚗</span>
+    <span class="brand-text">EmergVial</span>
+  </a>
+
+  <div class="navbar-links" *ngIf="usuario">
+    <a
+      *ngFor="let item of menuItems"
+      [routerLink]="item.path"
+      routerLinkActive="active"
+      [routerLinkActiveOptions]="{ exact: item.exact ?? false }">
+      <span *ngIf="item.icon === 'chat'" class="nav-chat-icon" aria-hidden="true"></span>
+      <span>{{ item.label }}</span>
+    </a>
+  </div>
+
+  <div class="navbar-user" *ngIf="usuario">
+    <div class="notifications" *ngIf="esAdminTaller()">
+      <button
+        type="button"
+        class="notification-btn"
+        (click)="toggleNotificaciones()"
+        title="Notificaciones">
+        <span class="bell-icon" aria-hidden="true"></span>
+        <span *ngIf="totalNoLeidas > 0" class="notification-badge">
+          {{ totalNoLeidas > 99 ? '99+' : totalNoLeidas }}
+        </span>
+      </button>
+
+      <div class="notification-panel" *ngIf="notificacionesAbiertas">
+        <div class="notification-head">
+          <div>
+            <strong>Notificaciones</strong>
+            <span>{{ totalNoLeidas }} sin leer</span>
+          </div>
+
+          <button
+            type="button"
+            class="mark-all-btn"
+            (click)="marcarTodasLeidas($event)"
+            [disabled]="totalNoLeidas === 0">
+            Marcar todas
+          </button>
+        </div>
+
+        <div *ngIf="notificacionesLoading" class="notification-state">
+          Cargando notificaciones...
+        </div>
+
+        <div *ngIf="notificacionesError && !notificacionesLoading" class="notification-state error">
+          {{ notificacionesError }}
+        </div>
+
+        <div
+          *ngIf="!notificacionesLoading && !notificacionesError && notificaciones.length === 0"
+          class="notification-state">
+          No tienes notificaciones.
+        </div>
+
+        <button
+          type="button"
+          class="notification-item"
+          *ngFor="let item of notificaciones"
+          [class.unread]="!item.leido"
+          (click)="abrirNotificacion(item)">
+          <span class="read-dot"></span>
+          <span class="notification-copy">
+            <strong>{{ item.mensaje }}</strong>
+            <small>
+              {{ item.fecha_envio | date:'dd/MM/yyyy HH:mm' }}
+              <span *ngIf="item.id_incidente"> · Incidente #{{ item.id_incidente }}</span>
+            </small>
+            <em>{{ item.leido ? 'Leida' : 'No leida' }}</em>
+          </span>
+        </button>
+      </div>
+    </div>
+
+    <div class="user-info">
+      <div class="avatar">{{ usuario.nombre.charAt(0) }}</div>
+
+      <div class="user-details">
+        <span class="user-name">{{ usuario.nombre }}</span>
+        <span class="user-rol" [ngClass]="'rol-' + usuario.id_rol">
+          {{ usuario.nombre_rol }}
+        </span>
+      </div>
+    </div>
+
+    <button class="logout-btn" (click)="logout()">Salir</button>
+  </div>
+</nav>

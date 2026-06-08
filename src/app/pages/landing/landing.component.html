@@ -1,0 +1,104 @@
+<div class="landing">
+
+  <!-- NAVBAR -->
+  <nav class="navbar">
+    <div class="nav-logo">
+      <div class="logo-wrap">
+        <img src="logo-vialert.png" alt="Logo Vialert" class="logo-box">
+      </div>
+      <span class="logo-text">VIALERT</span>
+    </div>
+    <div class="nav-right">
+      <a routerLink="/login" class="btn-ghost">Iniciar Sesión</a>
+      <a routerLink="/registro" class="btn-orange">Registrarse</a>
+    </div>
+  </nav>
+
+  <!-- HERO -->
+  <section class="hero">
+    <div class="hero-badge">
+      <span class="badge-dot"></span>
+      Plataforma de Emergencias Vehiculares con IA
+    </div>
+    <h1>
+      Asistencia Vehicular
+      <span class="accent">Inteligente</span>
+      las 24/7
+    </h1>
+    <p>
+      Sistema de información para atención de emergencias vehiculares con
+      diagnóstico automatizado por inteligencia artificial y respuesta rápida.
+    </p>
+    <div class="hero-btns">
+      <a routerLink="/registro" class="btn-red">
+        🚗 Reportar Emergencia
+      </a>
+      <a routerLink="/login" class="btn-dark">
+        Acceder al Sistema →
+      </a>
+    </div>
+  </section>
+
+  <div class="divider"></div>
+
+  <!-- CÓMO FUNCIONA -->
+  <section class="section">
+    <div class="section-header">
+      <h2>Cómo Funciona AutoSOS</h2>
+      <p>Una plataforma completa que conecta conductores con talleres mecánicos
+         de manera inteligente y eficiente</p>
+    </div>
+    <div class="steps-grid">
+      <div class="step-card" *ngFor="let paso of pasos">
+        <div class="step-icon" [ngClass]="paso.color"></div>
+        <div class="step-num">{{ paso.num }}</div>
+        <h3>{{ paso.titulo }}</h3>
+        <p>{{ paso.desc }}</p>
+      </div>
+    </div>
+  </section>
+
+  <!-- TIPOS DE EMERGENCIAS -->
+  <section class="tipos-section">
+    <div class="section-header">
+      <h2>Tipos de Emergencias</h2>
+      <p>Atendemos todo tipo de emergencias vehiculares</p>
+    </div>
+    <div class="tipos-grid">
+      <div class="tipo-card" *ngFor="let e of emergencias">
+        <div class="tipo-icon">{{ e.icon }}</div>
+        <h4>{{ e.titulo }}</h4>
+        <p>{{ e.desc }}</p>
+      </div>
+    </div>
+  </section>
+
+  <!-- CTA -->
+  <section class="cta-section">
+    <div class="cta-box">
+      <h2>¿Necesitas Asistencia Ahora?</h2>
+      <p>Regístrate gratis y obtén ayuda inmediata cuando la necesites</p>
+      <div class="cta-btns">
+        <a routerLink="/registro" class="btn-orange large">Crear Cuenta Gratis</a>
+        <a routerLink="/login" class="btn-dark large">Ya tengo cuenta</a>
+      </div>
+    </div>
+  </section>
+
+  <!-- FOOTER -->
+  <footer class="footer">
+    <div class="footer-logo">
+      <div class="logo-wrap small">
+        <img src="logo-vialert.png" alt="Logo Vialert" class="logo-box">
+      </div>
+      <span class="logo-text">VIALERT</span>
+    </div>
+    <div class="footer-center">
+      UAGRM — Facultad de Ingeniería en Ciencias de la Computación y Telecomunicaciones
+    </div>
+    <div class="footer-right">
+      Sistemas de Información II — Semestre I/2026
+    </div>
+  </footer>
+
+</div>

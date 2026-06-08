@@ -1,0 +1,33 @@
+<app-navbar></app-navbar>
+
+<main class="result-page">
+  <section class="result-card" [class.cancel]="tipo === 'cancel'">
+    <span class="eyebrow">{{ tipo === 'success' ? 'Stripe confirmado' : 'Pago cancelado' }}</span>
+    <h1>{{ tipo === 'success' ? 'Pago realizado correctamente' : 'Pago cancelado' }}</h1>
+
+    <p *ngIf="tipo === 'success'">
+      Estamos actualizando tu suscripcion. Puedes volver a tu plan para revisar la vigencia.
+    </p>
+    <p *ngIf="tipo === 'cancel'">
+      No se realizo ningun cargo. Puedes volver a intentar el pago cuando quieras.
+    </p>
+
+    <div *ngIf="sessionId" class="session-box">
+      Session Stripe: {{ sessionId }}
+    </div>
+
+    <div *ngIf="loading" class="state-box">Consultando tu plan...</div>
+    <div *ngIf="error" class="state-box error">{{ error }}</div>
+
+    <div class="plan-box" *ngIf="plan">
+      <span>Plan actual</span>
+      <strong>{{ plan.plan?.nombre || 'Plan' }}</strong>
+      <small>{{ plan.estado_suscripcion }} · vence {{ plan.fecha_vencimiento | date:'dd/MM/yyyy' }}</small>
+    </div>
+
+    <div class="actions">
+      <a class="btn-primary" routerLink="/admin-taller/mi-plan">Ver mi suscripcion</a>
+      <a class="btn-secondary" routerLink="/admin-taller/planes">Elegir plan</a>
+    </div>
+  </section>
+</main>

@@ -1,0 +1,78 @@
+<app-navbar></app-navbar>
+
+<div class="eval-page">
+  <section class="page-header">
+    <div>
+      <span class="eyebrow">CU-30</span>
+      <h1>Mis evaluaciones</h1>
+      <p>Consulta la calidad percibida por los clientes en tus servicios atendidos.</p>
+    </div>
+
+    <button class="btn-primary" (click)="cargarEvaluaciones()">Actualizar</button>
+  </section>
+
+  <div *ngIf="loading" class="state-box">Cargando evaluaciones...</div>
+  <div *ngIf="error && !loading" class="state-box error">{{ error }}</div>
+
+  <ng-container *ngIf="!loading && !error && resumen">
+    <section class="summary-grid">
+      <div class="summary-card highlight">
+        <span>Promedio general</span>
+        <strong>{{ resumen.promedio_calificacion | number:'1.1-2' }}</strong>
+        <div class="stars">
+          <span *ngFor="let star of estrellas(resumen.promedio_calificacion)" [class.off]="!star">★</span>
+        </div>
+      </div>
+
+      <div class="summary-card">
+        <span>Total evaluaciones</span>
+        <strong>{{ resumen.total_evaluaciones }}</strong>
+      </div>
+
+      <div class="summary-card">
+        <span>Tecnico</span>
+        <strong>{{ resumen.codigo_tecnico }}</strong>
+      </div>
+    </section>
+
+    <section class="evaluations-list" *ngIf="getEvaluaciones().length > 0; else sinEvaluaciones">
+      <article class="evaluation-card" *ngFor="let ev of getEvaluaciones()">
+        <div class="card-head">
+          <div>
+            <span class="eyebrow">Incidente #{{ ev.id_incidente }}</span>
+            <h2>{{ ev.calificacion }}/5</h2>
+            <div class="stars">
+              <span *ngFor="let star of estrellas(ev.calificacion)" [class.off]="!star">★</span>
+            </div>
+          </div>
+          <span class="date-chip">{{ ev.fecha_evaluacion | date:'dd/MM/yyyy HH:mm' }}</span>
+        </div>
+
+        <p class="comment">{{ ev.comentario || 'Sin comentario del cliente.' }}</p>
+
+        <div class="criteria-grid">
+          <div>
+            <span>Puntualidad</span>
+            <strong>{{ ev.puntualidad }}/5</strong>
+          </div>
+          <div>
+            <span>Trato</span>
+            <strong>{{ ev.trato }}/5</strong>
+          </div>
+          <div>
+            <span>Solucion</span>
+            <strong>{{ ev.solucion }}/5</strong>
+          </div>
+          <div>
+            <span>Precio</span>
+            <strong>{{ ev.precio }}/5</strong>
+          </div>
+        </div>
+      </article>
+    </section>
+
+    <ng-template #sinEvaluaciones>
+      <div class="state-box">Todavia no tienes evaluaciones registradas.</div>
+    </ng-template>
+  </ng-container>
+</div>
