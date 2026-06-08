@@ -1,4 +1,4 @@
-import { Component, OnDestroy } from '@angular/core';
+import { Component, HostListener, OnDestroy } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { RouterLink, RouterLinkActive, Router } from '@angular/router';
 import { AuthService } from '../../core/services/auth.service';
@@ -28,6 +28,7 @@ export class NavbarComponent implements OnDestroy {
   notificacionesError = '';
   totalNoLeidas = 0;
   notificaciones: Notificacion[] = [];
+  menuAbierto = false;
   private notificacionesTimer: any = null;
 
   constructor(
@@ -48,6 +49,18 @@ export class NavbarComponent implements OnDestroy {
 
   ngOnDestroy(): void {
     this.detenerRefrescoNotificaciones();
+  }
+
+  @HostListener('window:resize')
+  onResize(): void {
+    if (window.innerWidth > 1280) {
+      this.menuAbierto = false;
+    }
+  }
+
+  @HostListener('document:keydown.escape')
+  cerrarConEscape(): void {
+    this.cerrarMenu();
   }
 
   esAdminPlataforma(): boolean {
@@ -128,10 +141,24 @@ export class NavbarComponent implements OnDestroy {
   }
 
   logout(): void {
+    this.cerrarMenu();
     this.auth.logout();
     localStorage.removeItem('id_taller');
     this.detenerRefrescoNotificaciones();
     this.router.navigate(['/login']);
+  }
+
+  toggleMenu(): void {
+    this.menuAbierto = !this.menuAbierto;
+
+    if (!this.menuAbierto) {
+      this.notificacionesAbiertas = false;
+    }
+  }
+
+  cerrarMenu(): void {
+    this.menuAbierto = false;
+    this.notificacionesAbiertas = false;
   }
 
   toggleNotificaciones(): void {
