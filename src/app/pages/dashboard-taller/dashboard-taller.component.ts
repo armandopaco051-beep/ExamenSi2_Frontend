@@ -8,6 +8,8 @@ import { TecnicoService } from '../../core/services/tecnico.service';
 import { DashboardTallerResponse, SolicitudPendienteTaller } from '../../models/dashboard_taller.model';
 import { Tecnico } from '../../models/tecnico.models';
 import { AsignacionService } from '../../core/services/asignacion.service';
+import { SuscripcionService } from '../../core/services/suscripcion.service';
+import { TenantSuscripcion } from '../../models/suscripcion.model';
 
 @Component({
   selector: 'app-dashboard-taller',
@@ -20,6 +22,8 @@ export class DashboardTallerComponent implements OnInit {
   idTaller = 0;
   loading = true;
   error = '';
+  miPlan: TenantSuscripcion | null = null;
+  loadingPlan = false;
 
   stats = {
     total_solicitudes: 0,
@@ -49,7 +53,8 @@ export class DashboardTallerComponent implements OnInit {
   constructor(
     private dashboardService: DashboardService,
     private tecnicoService: TecnicoService,
-    private asignacionServices: AsignacionService
+    private asignacionServices: AsignacionService,
+    private suscripcionService: SuscripcionService
   ) {}
 
   ngOnInit(): void {
@@ -64,6 +69,22 @@ export class DashboardTallerComponent implements OnInit {
     this.cargarDashboard();
     this.cargarTecnicos();
     this.cargarIncidentesTaller();
+    this.cargarMiPlan();
+  }
+
+  cargarMiPlan(): void {
+    this.loadingPlan = true;
+
+    this.suscripcionService.obtenerMiPlan().subscribe({
+      next: plan => {
+        this.miPlan = plan;
+        this.loadingPlan = false;
+      },
+      error: err => {
+        console.error('Error cargando mi plan:', err);
+        this.loadingPlan = false;
+      }
+    });
   }
 
   cargarIncidentesTaller(): void {
@@ -171,5 +192,29 @@ export class DashboardTallerComponent implements OnInit {
 
   getCobrosFake(): number {
     return this.stats.completadas * 35;
+  }
+
+  getNombreTallerPlan(): string {
+    return this.miPlan?.nombre || `Taller #${this.idTaller}`;
+  }
+
+  getDominioPlan(): string {
+    const dominio = this.miPlan?.dominio;
+    if (!dominio) return 'Sin dominio registrado';
+    return typeof dominio === 'string' ? dominio : dominio.dominio || 'Sin dominio registrado';
+  }
+
+  getNombrePlan(): string {
+    return this.miPlan?.suscripcion?.plan?.nombre || this.miPlan?.plan?.nombre || 'Plan Estandar';
+  }
+
+  getEstadoSuscripcion(): string {
+    return String(this.miPlan?.suscripcion?.estado || this.miPlan?.estado_suscripcion || 'ACTIVA');
+  }
+
+  getPrecioPlan(): string {
+    const precio = Number(this.miPlan?.suscripcion?.plan?.precio ?? this.miPlan?.plan?.precio ?? 0);
+    if (precio <= 0) return 'Plan gratuito / 0 Bs';
+    return `Bs ${precio.toFixed(2)}`;
   }
 }

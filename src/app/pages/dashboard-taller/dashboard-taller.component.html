@@ -27,6 +27,20 @@
         </div>
       </div>
 
+      <div class="subscription-card">
+        <div>
+          <span class="subscription-label">Mi suscripcion</span>
+          <h3>{{ getNombreTallerPlan() }}</h3>
+          <p>{{ getDominioPlan() }}</p>
+        </div>
+
+        <div class="subscription-meta">
+          <span class="plan-chip">{{ getNombrePlan() }}</span>
+          <strong>{{ getPrecioPlan() }}</strong>
+          <small>{{ getEstadoSuscripcion() }}</small>
+        </div>
+      </div>
+
       <div class="stats-grid">
         <div class="stat-card">
           <span>Activos</span>
